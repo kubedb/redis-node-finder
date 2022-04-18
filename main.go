@@ -113,4 +113,11 @@ func printDNSOfAllRedisNodes() {
 	}
 	writePodDNSToFile("redis-nodes.txt", redisNodes)
 
+	var masterNodes []string
+	for shardNO := 0; shardNO < dbMasterCount; shardNO++ {
+		initialMasterPod := fmt.Sprintf("%s-shard%d-0", offShootName, shardNO)
+		dnsName := initialMasterPod + "." + dbGoverningServiceName
+		masterNodes = append(masterNodes, dnsName)
+	}
+	writePodDNSToFile("initial-master-nodes.txt", masterNodes)
 }
