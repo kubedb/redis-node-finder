@@ -17,7 +17,7 @@ limitations under the License.
 package cmds
 
 import (
-	"github.com/Shaad7/redis-node-finder/pkg/node_finder"
+	"github.com/Shaad7/redis-node-finder/pkg/node-finder"
 	"github.com/spf13/cobra"
 	"io"
 )
@@ -29,7 +29,7 @@ func NewCmdRun(out, errOut io.Writer, stopCh <-chan struct{}) *cobra.Command {
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			c := node_finder.New()
-			c.RunRedisCoordinator(stopCh)
+			c.RunRedisNodeFinder()
 		},
 	}
 
