@@ -17,15 +17,12 @@ limitations under the License.
 package cmds
 
 import (
-	"os"
-
 	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 
 	"github.com/spf13/cobra"
 	"gomodules.xyz/flags"
 	v "gomodules.xyz/x/version"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	genericapiserver "k8s.io/apiserver/pkg/server"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	appcatscheme "kmodules.xyz/custom-resources/client/clientset/versioned/scheme"
 )
@@ -41,9 +38,6 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 	rootCmd.AddCommand(v.NewCmdVersion())
-
-	stopCh := genericapiserver.SetupSignalHandler()
-	rootCmd.AddCommand(NewCmdRun(os.Stdout, os.Stderr, stopCh))
-
+	rootCmd.AddCommand(NewCmdRun())
 	return rootCmd
 }

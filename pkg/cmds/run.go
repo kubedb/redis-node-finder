@@ -19,19 +19,33 @@ package cmds
 import (
 	"github.com/Shaad7/redis-node-finder/pkg/node-finder"
 	"github.com/spf13/cobra"
-	"io"
 )
 
-func NewCmdRun(out, errOut io.Writer, stopCh <-chan struct{}) *cobra.Command {
-	cmd := &cobra.Command{
+var (
+	masterFile        string
+	slaveFile         string
+	redisNodesFile    string
+	initialMasterFile string
+	cmd               = &cobra.Command{
 		Use:               "run",
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			c := node_finder.New()
+
+			c := node_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
 			c.RunRedisNodeFinder()
 		},
 	}
+)
+
+func NewCmdRun() *cobra.Command {
 
 	return cmd
+}
+
+func init() {
+	cmd.PersistentFlags().StringVar(&masterFile, "master-file", "master.txt", "Contains master count")
+	cmd.PersistentFlags().StringVar(&slaveFile, "slave-file", "slave.txt", "Contains slave count")
+	cmd.PersistentFlags().StringVar(&redisNodesFile, "redis-nodes-file", "redis-nodes.txt", "Contains dns names of redis nodes")
+	cmd.PersistentFlags().StringVar(&initialMasterFile, "initial-master-file", "initial-master-nodes.txt", "Contains dns names of initial masters")
 }

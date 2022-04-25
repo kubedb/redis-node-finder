@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"github.com/Shaad7/redis-node-finder/pkg/cmds"
 
 	_ "go.bytebuilders.dev/license-verifier/info"
@@ -27,6 +28,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Initial Hello")
 	rootCmd := cmds.NewRootCmd()
 	logs.Init(rootCmd, true)
 	defer logs.FlushLogs()

@@ -39,9 +39,13 @@ type RdNodeFinder struct {
 	redisTLSEnabled        bool
 	dbClient               *cs.Clientset
 	OffShootName           string
+	masterFile             string
+	slaveFile              string
+	redisNodesFile         string
+	initialMasterNodesFile string
 }
 
-func New() *RdNodeFinder {
+func New(masterFile string, slaveFile string, redisNodesFile string, initialMasterNodesFile string) *RdNodeFinder {
 	var (
 		rdTLSEnabled bool
 	)
@@ -71,6 +75,10 @@ func New() *RdNodeFinder {
 		RedisPort:              6379,
 		redisTLSEnabled:        rdTLSEnabled,
 		dbGoverningServiceName: dbGoverningServiceName,
+		masterFile:             masterFile,
+		slaveFile:              slaveFile,
+		redisNodesFile:         redisNodesFile,
+		initialMasterNodesFile: initialMasterNodesFile,
 	}
 }
 
@@ -83,8 +91,8 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 	dbMasterCount := int(*db.Spec.Cluster.Master)
 	dbReplicaCount := int(*db.Spec.Cluster.Replicas)
 
-	writeInfoToFile("master.txt", dbMasterCount)
-	writeInfoToFile("replicas.txt", dbReplicaCount)
+	r.writeInfoToFile(r.masterFile, dbMasterCount)
+	r.writeInfoToFile(r.slaveFile, dbReplicaCount)
 
 	var redisNodes []string
 	for shardNo := 0; shardNo < dbMasterCount; shardNo++ {
@@ -96,7 +104,7 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 			redisNodes = append(redisNodes, dnsName)
 		}
 	}
-	writePodDNSToFile("redis-nodes.txt", redisNodes)
+	r.writePodDNSToFile(r.redisNodesFile, redisNodes)
 
 	var masterNodes []string
 	for shardNO := 0; shardNO < dbMasterCount; shardNO++ {
@@ -104,10 +112,10 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 		dnsName := initialMasterPod + "." + r.dbGoverningServiceName
 		masterNodes = append(masterNodes, dnsName)
 	}
-	writePodDNSToFile("initial-master-nodes.txt", masterNodes)
+	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 }
 
-func writeInfoToFile(filename string, count int) {
+func (r *RdNodeFinder) writeInfoToFile(filename string, count int) {
 
 	filePath := fmt.Sprintf("/tmp/%s", filename)
 	file, err := os.Create(filePath)
@@ -128,7 +136,7 @@ func writeInfoToFile(filename string, count int) {
 
 }
 
-func writePodDNSToFile(filename string, dnsNames []string) {
+func (r *RdNodeFinder) writePodDNSToFile(filename string, dnsNames []string) {
 
 	filePath := fmt.Sprintf("/tmp/%s", filename)
 	file, err := os.Create(filePath)
