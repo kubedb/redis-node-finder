@@ -17,21 +17,16 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"github.com/Shaad7/redis-node-finder/pkg/cmds"
 
 	_ "go.bytebuilders.dev/license-verifier/info"
-	"gomodules.xyz/logs"
 	_ "k8s.io/client-go/kubernetes/fake"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/klog/v2"
 )
 
 func main() {
-	fmt.Println("Initial Hello")
 	rootCmd := cmds.NewRootCmd()
-	logs.Init(rootCmd, true)
-	defer logs.FlushLogs()
 
 	if err := rootCmd.Execute(); err != nil {
 		klog.Warningln(err)
