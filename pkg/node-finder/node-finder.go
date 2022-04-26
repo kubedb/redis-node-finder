@@ -21,7 +21,6 @@ import (
 	"fmt"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"kmodules.xyz/client-go/tools/clientcmd"
@@ -30,13 +29,10 @@ import (
 )
 
 type RdNodeFinder struct {
-	KubeConfig             *restclient.Config
-	KubeClient             *kubernetes.Clientset
 	pod                    *core.Pod
 	Namespace              string
 	dbGoverningServiceName string
 	RedisPort              int32
-	redisTLSEnabled        bool
 	dbClient               *cs.Clientset
 	RedisName              string
 	masterFile             string
@@ -46,9 +42,6 @@ type RdNodeFinder struct {
 }
 
 func New(masterFile string, slaveFile string, redisNodesFile string, initialMasterNodesFile string) *RdNodeFinder {
-	var (
-		rdTLSEnabled bool
-	)
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -62,18 +55,11 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	RedisName := os.Getenv("REDIS_NAME")
 	dbGoverningServiceName := os.Getenv("REDIS_GOVERNING_SERVICE")
 
-	redisTLS := os.Getenv("TLS")
-	if redisTLS == "ON" {
-		rdTLSEnabled = true
-	}
-
 	return &RdNodeFinder{
-		KubeConfig:             kubeConfig,
 		dbClient:               dbClient,
 		Namespace:              namespace,
 		RedisName:              RedisName,
 		RedisPort:              6379,
-		redisTLSEnabled:        rdTLSEnabled,
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
