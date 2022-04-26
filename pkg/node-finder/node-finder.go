@@ -38,7 +38,7 @@ type RdNodeFinder struct {
 	RedisPort              int32
 	redisTLSEnabled        bool
 	dbClient               *cs.Clientset
-	OffShootName           string
+	RedisName              string
 	masterFile             string
 	slaveFile              string
 	redisNodesFile         string
@@ -59,7 +59,7 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 		klog.Fatalln(err)
 	}
 	namespace := os.Getenv("NAMESPACE")
-	offShootName := os.Getenv("OFF_SHOOT_NAME")
+	RedisName := os.Getenv("REDIS_NAME")
 	dbGoverningServiceName := os.Getenv("REDIS_GOVERNING_SERVICE")
 
 	redisTLS := os.Getenv("REDIS_TLS")
@@ -71,7 +71,7 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 		KubeConfig:             kubeConfig,
 		dbClient:               dbClient,
 		Namespace:              namespace,
-		OffShootName:           offShootName,
+		RedisName:              RedisName,
 		RedisPort:              6379,
 		redisTLSEnabled:        rdTLSEnabled,
 		dbGoverningServiceName: dbGoverningServiceName,
@@ -83,7 +83,7 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 }
 
 func (r *RdNodeFinder) RunRedisNodeFinder() {
-	db, err := r.dbClient.KubedbV1alpha2().Redises(r.Namespace).Get(context.TODO(), r.OffShootName, metav1.GetOptions{})
+	db, err := r.dbClient.KubedbV1alpha2().Redises(r.Namespace).Get(context.TODO(), r.RedisName, metav1.GetOptions{})
 	if err != nil {
 		klog.Fatalln(err)
 		return
@@ -96,7 +96,7 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 
 	var redisNodes []string
 	for shardNo := 0; shardNo < dbMasterCount; shardNo++ {
-		shardName := fmt.Sprintf("%s-shard%d", r.OffShootName, shardNo)
+		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 
 		for podNo := 0; podNo <= dbReplicaCount; podNo++ {
 			podName := fmt.Sprintf("%s-%d", shardName, podNo)
@@ -108,7 +108,7 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 
 	var masterNodes []string
 	for shardNO := 0; shardNO < dbMasterCount; shardNO++ {
-		initialMasterPod := fmt.Sprintf("%s-shard%d-0", r.OffShootName, shardNO)
+		initialMasterPod := fmt.Sprintf("%s-shard%d-0", r.RedisName, shardNO)
 		dnsName := initialMasterPod + "." + r.dbGoverningServiceName
 		masterNodes = append(masterNodes, dnsName)
 	}
