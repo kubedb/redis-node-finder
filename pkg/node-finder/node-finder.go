@@ -62,7 +62,7 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	RedisName := os.Getenv("REDIS_NAME")
 	dbGoverningServiceName := os.Getenv("REDIS_GOVERNING_SERVICE")
 
-	redisTLS := os.Getenv("REDIS_TLS")
+	redisTLS := os.Getenv("TLS")
 	if redisTLS == "ON" {
 		rdTLSEnabled = true
 	}
