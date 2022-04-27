@@ -17,18 +17,35 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"kubedb.dev/redis-node-finder/pkg/cmds"
 
-	_ "go.bytebuilders.dev/license-verifier/info"
-	_ "k8s.io/client-go/kubernetes/fake"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/klog/v2"
+	"github.com/spf13/cobra/doc"
+	"gomodules.xyz/runtime"
 )
 
+func docsDir() string {
+	if dir, ok := os.LookupEnv("DOCS_ROOT"); ok {
+		return dir
+	}
+	return runtime.GOPath() + "/src/kubedb.dev/redis-node-finder"
+}
+
+// ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md
 func main() {
 	rootCmd := cmds.NewRootCmd()
-
-	if err := rootCmd.Execute(); err != nil {
-		klog.Warningln(err)
+	dir := docsDir() + "/docs/reference"
+	fmt.Printf("Generating cli markdown tree in: %v\n", dir)
+	err := os.RemoveAll(dir)
+	if err != nil {
+		log.Fatal(err)
 	}
+	err = os.MkdirAll(dir, 0o755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = doc.GenMarkdownTree(rootCmd, dir)
 }

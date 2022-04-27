@@ -1,11 +1,11 @@
 /*
-Copyright AppsCode Inc. and Contributors
+Copyright AppsCode Inc. and Contributors.
 
-Licensed under the AppsCode Free Trial License 1.0.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://github.com/appscode/licenses/raw/1.0.0/AppsCode-Free-Trial-1.0.0.md
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,8 @@ limitations under the License.
 package cmds
 
 import (
-	"github.com/Shaad7/redis-node-finder/pkg/node-finder"
+	node_finder "kubedb.dev/redis-node-finder/pkg/node-finder"
+
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,6 @@ var (
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-
 			c := node_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
 			c.RunRedisNodeFinder()
 		},
@@ -39,7 +39,6 @@ var (
 )
 
 func NewCmdRun() *cobra.Command {
-
 	return cmd
 }
 

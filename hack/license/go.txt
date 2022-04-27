@@ -14,21 +14,3 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
-
-import (
-	"kubedb.dev/redis-node-finder/pkg/cmds"
-
-	_ "go.bytebuilders.dev/license-verifier/info"
-	_ "k8s.io/client-go/kubernetes/fake"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/klog/v2"
-)
-
-func main() {
-	rootCmd := cmds.NewRootCmd()
-
-	if err := rootCmd.Execute(); err != nil {
-		klog.Warningln(err)
-	}
-}
