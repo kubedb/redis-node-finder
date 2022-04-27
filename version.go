@@ -17,18 +17,29 @@ limitations under the License.
 package main
 
 import (
-	"kubedb.dev/redis-node-finder/pkg/cmds"
-
-	_ "go.bytebuilders.dev/license-verifier/info"
-	_ "k8s.io/client-go/kubernetes/fake"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/klog/v2"
+	v "gomodules.xyz/x/version"
 )
 
-func main() {
-	rootCmd := cmds.NewRootCmd()
+var (
+	Version         string
+	VersionStrategy string
+	GitTag          string
+	GitBranch       string
+	CommitHash      string
+	CommitTimestamp string
+	GoVersion       string
+	Compiler        string
+	Platform        string
+)
 
-	if err := rootCmd.Execute(); err != nil {
-		klog.Warningln(err)
-	}
+func init() {
+	v.Version.Version = Version
+	v.Version.VersionStrategy = VersionStrategy
+	v.Version.GitTag = GitTag
+	v.Version.GitBranch = GitBranch
+	v.Version.CommitHash = CommitHash
+	v.Version.CommitTimestamp = CommitTimestamp
+	v.Version.GoVersion = GoVersion
+	v.Version.Compiler = Compiler
+	v.Version.Platform = Platform
 }
