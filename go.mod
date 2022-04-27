@@ -8,12 +8,11 @@ require (
 	gomodules.xyz/flags v0.1.3
 	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/x v0.0.13
-	k8s.io/api v0.21.1
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1
 	k8s.io/klog/v2 v2.9.0
-	kmodules.xyz/client-go v0.0.0-20220317213815-2a6d5a5784f2
-	kmodules.xyz/custom-resources v0.0.0-20220317220154-7beb809b1f5e
+	kmodules.xyz/client-go v0.0.0-20220404224906-af7b092cfac5
+	kmodules.xyz/custom-resources v0.0.0-20220422215041-237eae1d7ddd
 	kubedb.dev/apimachinery v0.26.1-0.20220426051729-023a7988b5b3
 )
 
@@ -98,6 +97,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	k8s.io/api v0.21.1 // indirect
 	k8s.io/apiextensions-apiserver v0.21.1 // indirect
 	k8s.io/cli-runtime v0.21.1 // indirect
 	k8s.io/component-base v0.21.1 // indirect
