@@ -13,7 +13,7 @@ require (
 	k8s.io/klog/v2 v2.70.1
 	kmodules.xyz/client-go v0.24.5
 	kmodules.xyz/custom-resources v0.24.1
-	kubedb.dev/apimachinery v0.27.1-0.20220802063205-a89b3bc243f9
+	kubedb.dev/apimachinery v0.28.0-rc.0.0.20220803084214-1241b40d48ec
 )
 
 require (
