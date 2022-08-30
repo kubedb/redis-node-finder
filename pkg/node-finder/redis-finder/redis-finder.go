@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node_finder
+package redis_finder
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	"kmodules.xyz/client-go/tools/clientcmd"
 )
 
-type RdNodeFinder struct {
+type RedisdNodeFinder struct {
 	Namespace              string
 	dbGoverningServiceName string
 	RedisPort              int32
@@ -41,7 +41,7 @@ type RdNodeFinder struct {
 	initialMasterNodesFile string
 }
 
-func New(masterFile string, slaveFile string, redisNodesFile string, initialMasterNodesFile string) *RdNodeFinder {
+func New(masterFile string, slaveFile string, redisNodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -55,7 +55,7 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	RedisName := os.Getenv("REDIS_NAME")
 	dbGoverningServiceName := os.Getenv("REDIS_GOVERNING_SERVICE")
 
-	return &RdNodeFinder{
+	return &RedisdNodeFinder{
 		dbClient:               dbClient,
 		Namespace:              namespace,
 		RedisName:              RedisName,
@@ -68,7 +68,11 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	}
 }
 
-func (r *RdNodeFinder) RunRedisNodeFinder() {
+// RunRedisNodeFinder  get Redis DB  object and extract master/replica count, and initial master nodes name and write them to given
+// file name in /tmp directory. The call is made from init script, so it will write to tmp/ directory
+// The init script then use those value to provision the db object with right configuration and the init
+// script also has updated information during pod restart
+func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	db, err := r.dbClient.KubedbV1alpha2().Redises(r.Namespace).Get(context.TODO(), r.RedisName, metav1.GetOptions{})
 	if err != nil {
 		klog.Fatalln(err)
@@ -101,7 +105,7 @@ func (r *RdNodeFinder) RunRedisNodeFinder() {
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 }
 
-func (r *RdNodeFinder) writeInfoToFile(filename string, count int) {
+func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {
 	filePath := fmt.Sprintf("/tmp/%s", filename)
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -120,7 +124,7 @@ func (r *RdNodeFinder) writeInfoToFile(filename string, count int) {
 	}
 }
 
-func (r *RdNodeFinder) writePodDNSToFile(filename string, dnsNames []string) {
+func (r *RedisdNodeFinder) writePodDNSToFile(filename string, dnsNames []string) {
 	filePath := fmt.Sprintf("/tmp/%s", filename)
 	file, err := os.Create(filePath)
 	if err != nil {

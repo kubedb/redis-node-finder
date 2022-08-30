@@ -17,12 +17,17 @@ limitations under the License.
 package cmds
 
 import (
-	node_finder "kubedb.dev/redis-node-finder/pkg/node-finder"
+	"fmt"
+
+	redis_finder "kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
+	sentinel_finder "kubedb.dev/redis-node-finder/pkg/node-finder/sentinel-finder"
 
 	"github.com/spf13/cobra"
 )
 
 var (
+	mode              string
+	sentinelFile      string
 	masterFile        string
 	slaveFile         string
 	redisNodesFile    string
@@ -32,8 +37,18 @@ var (
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			c := node_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
-			c.RunRedisNodeFinder()
+			fmt.Println(mode)
+			if mode == "cluster" {
+				fmt.Println("Running node finder for cluster mode nodes")
+				c := redis_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
+				c.RunRedisNodeFinder()
+			} else if mode == "sentinel" {
+				fmt.Println("Running node finder for sentinels")
+				c := sentinel_finder.New(sentinelFile)
+				c.RunSentinelReplicaFinder()
+			} else {
+				fmt.Println("Unknown mode ", mode)
+			}
 		},
 	}
 )
@@ -47,4 +62,7 @@ func init() {
 	cmd.PersistentFlags().StringVar(&slaveFile, "slave-file", "slave.txt", "Contains slave count")
 	cmd.PersistentFlags().StringVar(&redisNodesFile, "redis-nodes-file", "redis-nodes.txt", "Contains dns names of redis nodes")
 	cmd.PersistentFlags().StringVar(&initialMasterFile, "initial-master-file", "initial-master-nodes.txt", "Contains dns names of initial masters")
+
+	cmd.PersistentFlags().StringVar(&mode, "mode", "cluster", "Contains Database Mode")
+	cmd.PersistentFlags().StringVar(&sentinelFile, "sentinel-file", "sentinel-replicas.txt", "Contains sentinel count")
 }
