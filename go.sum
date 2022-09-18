@@ -944,8 +944,8 @@ k8s.io/kube-openapi v0.0.0-20220803164354-a70c9af30aea h1:3QOH5+2fGsY8e1qf+GIFpg
 k8s.io/kube-openapi v0.0.0-20220803164354-a70c9af30aea/go.mod h1:C/N6wCaBHeBHkHUesQOQy2/MZqGgMAFPqGsGQLdbZBU=
 k8s.io/utils v0.0.0-20220823124924-e9cbc92d1a73 h1:H9TCJUUx+2VA0ZiD9lvtaX8fthFsMoD+Izn93E/hm8U=
 k8s.io/utils v0.0.0-20220823124924-e9cbc92d1a73/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
-kmodules.xyz/client-go v0.25.0 h1:ItlaPAwQEzmle33ieIvT+zSIlZ0sZpwxgtCBD8OJnuE=
-kmodules.xyz/client-go v0.25.0/go.mod h1:PQAVWlXoHmk/OXqIuUz3xEW5H04uidiLwVyGX0yYnBQ=
+kmodules.xyz/client-go v0.25.2 h1:Uav3RB85b3Pz2dhWI3VQR4XYjSSklpw8EFb88HHpMjI=
+kmodules.xyz/client-go v0.25.2/go.mod h1:PQAVWlXoHmk/OXqIuUz3xEW5H04uidiLwVyGX0yYnBQ=
 kmodules.xyz/custom-resources v0.25.0 h1:5JQTEuiv6lC/+VVFNKqzfX4YtJCmN5E7mcNtGnHGVQM=
 kmodules.xyz/custom-resources v0.25.0/go.mod h1:ULwzvLmOqZJcPSXKI7iLclYL5eYRlKx8Nbex28Ht19E=
 kmodules.xyz/monitoring-agent-api v0.25.0 h1:RU9RBeCqQdoS381xXy8cM1aqT+7qmtuPI3KxNQoX16Y=
@@ -954,8 +954,8 @@ kmodules.xyz/objectstore-api v0.25.0 h1:xT7+SXBqAMtVkfOdp4espHAfZ6MYUC4G1OgzTkUR
 kmodules.xyz/objectstore-api v0.25.0/go.mod h1:X5aCkyU91p9TOn4jcWw0cfcJL0HCKd/Z6FJHdzKz1ZU=
 kmodules.xyz/offshoot-api v0.25.0 h1:Svq9da/+sg5afOjpgo9vx2J/Lu90Mo0aFxkdQmgKnGI=
 kmodules.xyz/offshoot-api v0.25.0/go.mod h1:ysEBn7LJuT3+s8ynAQA/OG0BSsJugXa6KGtDLMRjlKo=
-kubedb.dev/apimachinery v0.28.4-0.20220917062222-b7b935978ac3 h1:EHU+0nOAscBY1es+ENe6G4FFRJht+Aqvl48G0H66qqY=
-kubedb.dev/apimachinery v0.28.4-0.20220917062222-b7b935978ac3/go.mod h1:rN537raWj+HfZ3SwS7YN4fK3pDA2bMIpTqx8Ab75LYE=
+kubedb.dev/apimachinery v0.28.4-0.20220918140426-7263b50309d2 h1:ic4TMCl+Yk3H3t5J9blQWyjEiLFTsKwC7pLtLgQ3+Ak=
+kubedb.dev/apimachinery v0.28.4-0.20220918140426-7263b50309d2/go.mod h1:rRH1iTGsGM/1lFii5MqE/7SOd/iQSbeS3YaXhF+s2m8=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
