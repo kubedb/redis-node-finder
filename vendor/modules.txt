@@ -704,7 +704,7 @@ kmodules.xyz/objectstore-api/api/v1
 # kmodules.xyz/offshoot-api v0.25.0
 ## explicit; go 1.18
 kmodules.xyz/offshoot-api/api/v1
-# kubedb.dev/apimachinery v0.28.4-0.20220918140426-7263b50309d2
+# kubedb.dev/apimachinery v0.28.4-0.20220921140803-c0388bc2e630
 ## explicit; go 1.18
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/autoscaling

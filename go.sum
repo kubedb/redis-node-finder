@@ -954,8 +954,8 @@ kmodules.xyz/objectstore-api v0.25.0 h1:xT7+SXBqAMtVkfOdp4espHAfZ6MYUC4G1OgzTkUR
 kmodules.xyz/objectstore-api v0.25.0/go.mod h1:X5aCkyU91p9TOn4jcWw0cfcJL0HCKd/Z6FJHdzKz1ZU=
 kmodules.xyz/offshoot-api v0.25.0 h1:Svq9da/+sg5afOjpgo9vx2J/Lu90Mo0aFxkdQmgKnGI=
 kmodules.xyz/offshoot-api v0.25.0/go.mod h1:ysEBn7LJuT3+s8ynAQA/OG0BSsJugXa6KGtDLMRjlKo=
-kubedb.dev/apimachinery v0.28.4-0.20220918140426-7263b50309d2 h1:ic4TMCl+Yk3H3t5J9blQWyjEiLFTsKwC7pLtLgQ3+Ak=
-kubedb.dev/apimachinery v0.28.4-0.20220918140426-7263b50309d2/go.mod h1:rRH1iTGsGM/1lFii5MqE/7SOd/iQSbeS3YaXhF+s2m8=
+kubedb.dev/apimachinery v0.28.4-0.20220921140803-c0388bc2e630 h1:k0gSeOsOEHH/4AM/mskW4ZD+2Dbp1VCqENAkyq+zvEI=
+kubedb.dev/apimachinery v0.28.4-0.20220921140803-c0388bc2e630/go.mod h1:BNR4wQVfhzoucxS8MNcH0zcpDcYelXwqsevnPBxtIo0=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
