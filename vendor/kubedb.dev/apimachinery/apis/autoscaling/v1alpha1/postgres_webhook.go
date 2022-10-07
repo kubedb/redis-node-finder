@@ -29,38 +29,39 @@ import (
 )
 
 // log is for logging in this package.
-var mariaLog = logf.Log.WithName("mariadb-autoscaler")
+var pgLog = logf.Log.WithName("postgres-autoscaler")
 
-func (in *MariaDBAutoscaler) SetupWebhookWithManager(mgr manager.Manager) error {
+func (in *PostgresAutoscaler) SetupWebhookWithManager(mgr manager.Manager) error {
 	return builder.WebhookManagedBy(mgr).
 		For(in).
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-autoscaling-kubedb-com-v1alpha1-mariadbautoscaler,mutating=true,failurePolicy=fail,sideEffects=None,groups=autoscaling.kubedb.com,resources=mariadbautoscaler,verbs=create;update,versions=v1alpha1,name=mmariadbautoscaler.kb.io,admissionReviewVersions={v1,v1beta1}
+// +kubebuilder:webhook:path=/mutate-autoscaling-kubedb-com-v1alpha1-postgresautoscaler,mutating=true,failurePolicy=fail,sideEffects=None,groups=autoscaling.kubedb.com,resources=postgresautoscaler,verbs=create;update,versions=v1alpha1,name=mpostgresautoscaler.kb.io,admissionReviewVersions={v1,v1beta1}
 
-var _ webhook.Defaulter = &MariaDBAutoscaler{}
+var _ webhook.Defaulter = &PostgresAutoscaler{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (in *MariaDBAutoscaler) Default() {
-	mariaLog.Info("defaulting", "name", in.Name)
+func (in *PostgresAutoscaler) Default() {
+	pgLog.Info("defaulting", "name", in.Name)
 	in.setDefaults()
 }
 
-func (in *MariaDBAutoscaler) setDefaults() {
+func (in *PostgresAutoscaler) setDefaults() {
 	in.setOpsReqOptsDefaults()
 
 	if in.Spec.Storage != nil {
-		setDefaultStorageValues(in.Spec.Storage.MariaDB)
+		setDefaultStorageValues(in.Spec.Storage.Postgres)
 	}
+
 	if in.Spec.Compute != nil {
-		setDefaultComputeValues(in.Spec.Compute.MariaDB)
+		setDefaultComputeValues(in.Spec.Compute.Postgres)
 	}
 }
 
-func (in *MariaDBAutoscaler) setOpsReqOptsDefaults() {
+func (in *PostgresAutoscaler) setOpsReqOptsDefaults() {
 	if in.Spec.OpsRequestOptions == nil {
-		in.Spec.OpsRequestOptions = &MariaDBOpsRequestOptions{}
+		in.Spec.OpsRequestOptions = &PostgresOpsRequestOptions{}
 	}
 	// Timeout is defaulted to 600s in ops-manager retries.go (to retry 120 times with 5sec pause between each)
 	// OplogMaxLagSeconds & ObjectsCountDiffPercentage are defaults to 0
@@ -69,28 +70,36 @@ func (in *MariaDBAutoscaler) setOpsReqOptsDefaults() {
 	}
 }
 
-// +kubebuilder:webhook:path=/validate-schema-kubedb-com-v1alpha1-mariadbautoscaler,mutating=false,failurePolicy=fail,sideEffects=None,groups=schema.kubedb.com,resources=mariadbautoscalers,verbs=create;update;delete,versions=v1alpha1,name=vmariadbautoscaler.kb.io,admissionReviewVersions={v1,v1beta1}
+func (in *PostgresAutoscaler) SetDefaults() {
+}
 
-var _ webhook.Validator = &MariaDBAutoscaler{}
+// +kubebuilder:webhook:path=/validate-schema-kubedb-com-v1alpha1-postgresautoscaler,mutating=false,failurePolicy=fail,sideEffects=None,groups=schema.kubedb.com,resources=postgresautoscalers,verbs=create;update;delete,versions=v1alpha1,name=vpostgresautoscaler.kb.io,admissionReviewVersions={v1,v1beta1}
+
+var _ webhook.Validator = &PostgresAutoscaler{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *MariaDBAutoscaler) ValidateCreate() error {
-	mariaLog.Info("validate create", "name", in.Name)
+func (in *PostgresAutoscaler) ValidateCreate() error {
+	pgLog.Info("validate create", "name", in.Name)
 	return in.validate()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *MariaDBAutoscaler) ValidateUpdate(old runtime.Object) error {
+func (in *PostgresAutoscaler) ValidateUpdate(old runtime.Object) error {
+	pgLog.Info("validate create", "name", in.Name)
 	return in.validate()
 }
 
-func (_ MariaDBAutoscaler) ValidateDelete() error {
+func (_ PostgresAutoscaler) ValidateDelete() error {
 	return nil
 }
 
-func (in *MariaDBAutoscaler) validate() error {
+func (in *PostgresAutoscaler) validate() error {
 	if in.Spec.DatabaseRef == nil {
 		return errors.New("databaseRef can't be empty")
 	}
+	return nil
+}
+
+func (in *PostgresAutoscaler) ValidateFields() error {
 	return nil
 }

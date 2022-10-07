@@ -141,11 +141,12 @@ type ProxySQLSpec struct {
 	// will be configured. It must be either "Galera" or "GroupReplication"
 	Mode *LoadBalanceMode `json:"mode,omitempty"`
 
-	// Backend specifies the information about backend MySQL/Percona-XtraDB/MariaDB servers
-	Backend *ProxySQLBackendSpec `json:"backend,omitempty"`
+	// Backend refers to the AppBinding of the backend MySQL/MariaDB/Percona-XtraDB server
+	Backend *core.LocalObjectReference `json:"backend,omitempty"`
 
 	// ProxySQL secret containing username and password for root user and proxysql user
-	AuthSecret *core.LocalObjectReference `json:"authSecret,omitempty"`
+	// +optional
+	AuthSecret *SecretReference `json:"authSecret,omitempty"`
 
 	// Monitor is used monitor proxysql instance
 	// +optional
@@ -186,16 +187,6 @@ const (
 	ProxySQLMetricsExporterCert ProxySQLCertificateAlias = "metrics-exporter"
 )
 
-type ProxySQLBackendSpec struct {
-	// Ref lets one to locate the typed referenced object
-	// (in our case, it is the MySQL/Percona-XtraDB/ProxySQL object)
-	// inside the same namespace.
-	Ref *core.TypedLocalObjectReference `json:"ref,omitempty"`
-
-	// Number of backend servers.
-	Replicas *int32 `json:"replicas,omitempty"`
-}
-
 type ProxySQLStatus struct {
 	// Specifies the current phase of the database
 	// +optional
@@ -207,6 +198,8 @@ type ProxySQLStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	AuthSecret *Age `json:"authSecret,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
