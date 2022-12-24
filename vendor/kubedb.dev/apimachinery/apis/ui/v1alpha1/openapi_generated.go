@@ -368,9 +368,12 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kmodules.xyz/client-go/api/v1.ClusterMetadata":                               schema_kmodulesxyz_client_go_api_v1_ClusterMetadata(ref),
 		"kmodules.xyz/client-go/api/v1.Condition":                                     schema_kmodulesxyz_client_go_api_v1_Condition(ref),
 		"kmodules.xyz/client-go/api/v1.HealthCheckSpec":                               schema_kmodulesxyz_client_go_api_v1_HealthCheckSpec(ref),
+		"kmodules.xyz/client-go/api/v1.ImageInfo":                                     schema_kmodulesxyz_client_go_api_v1_ImageInfo(ref),
+		"kmodules.xyz/client-go/api/v1.Lineage":                                       schema_kmodulesxyz_client_go_api_v1_Lineage(ref),
 		"kmodules.xyz/client-go/api/v1.ObjectID":                                      schema_kmodulesxyz_client_go_api_v1_ObjectID(ref),
 		"kmodules.xyz/client-go/api/v1.ObjectInfo":                                    schema_kmodulesxyz_client_go_api_v1_ObjectInfo(ref),
 		"kmodules.xyz/client-go/api/v1.ObjectReference":                               schema_kmodulesxyz_client_go_api_v1_ObjectReference(ref),
+		"kmodules.xyz/client-go/api/v1.PullSecrets":                                   schema_kmodulesxyz_client_go_api_v1_PullSecrets(ref),
 		"kmodules.xyz/client-go/api/v1.ReadonlyHealthCheckSpec":                       schema_kmodulesxyz_client_go_api_v1_ReadonlyHealthCheckSpec(ref),
 		"kmodules.xyz/client-go/api/v1.ResourceID":                                    schema_kmodulesxyz_client_go_api_v1_ResourceID(ref),
 		"kmodules.xyz/client-go/api/v1.TLSConfig":                                     schema_kmodulesxyz_client_go_api_v1_TLSConfig(ref),
@@ -493,6 +496,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.NodesStatsTranslogStats":            schema_apimachinery_apis_ui_v1alpha1_NodesStatsTranslogStats(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.NodesStatsWarmerStats":              schema_apimachinery_apis_ui_v1alpha1_NodesStatsWarmerStats(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PGSetting":                          schema_apimachinery_apis_ui_v1alpha1_PGSetting(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PodInsight":                         schema_apimachinery_apis_ui_v1alpha1_PodInsight(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresConnectionInfo":             schema_apimachinery_apis_ui_v1alpha1_PostgresConnectionInfo(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresInsight":                    schema_apimachinery_apis_ui_v1alpha1_PostgresInsight(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresInsightList":                schema_apimachinery_apis_ui_v1alpha1_PostgresInsightList(ref),
@@ -508,6 +512,17 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresSettingsList":               schema_apimachinery_apis_ui_v1alpha1_PostgresSettingsList(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresSettingsSpec":               schema_apimachinery_apis_ui_v1alpha1_PostgresSettingsSpec(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.PostgresVacuumInfo":                 schema_apimachinery_apis_ui_v1alpha1_PostgresVacuumInfo(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsight":                    schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsight(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsightList":                schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsightList(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsightSpec":                schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsightSpec(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueries":                    schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueries(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueriesList":                schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueriesList(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueriesSpec":                schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueriesSpec(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQuerySpec":                  schema_apimachinery_apis_ui_v1alpha1_ProxySQLQuerySpec(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettings":                   schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettings(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettingsList":               schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettingsList(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettingsSpec":               schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettingsSpec(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSlowQuerySpec":              schema_apimachinery_apis_ui_v1alpha1_ProxySQLSlowQuerySpec(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisDatabaseSpec":                  schema_apimachinery_apis_ui_v1alpha1_RedisDatabaseSpec(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisInsight":                       schema_apimachinery_apis_ui_v1alpha1_RedisInsight(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisInsightList":                   schema_apimachinery_apis_ui_v1alpha1_RedisInsightList(ref),
@@ -519,6 +534,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisSchemaOverview":                schema_apimachinery_apis_ui_v1alpha1_RedisSchemaOverview(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisSchemaOverviewList":            schema_apimachinery_apis_ui_v1alpha1_RedisSchemaOverviewList(ref),
 		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisSchemaOverviewSpec":            schema_apimachinery_apis_ui_v1alpha1_RedisSchemaOverviewSpec(ref),
+		"kubedb.dev/apimachinery/apis/ui/v1alpha1.RuleExecution":                      schema_apimachinery_apis_ui_v1alpha1_RuleExecution(ref),
 	}
 }
 
@@ -18217,6 +18233,86 @@ func schema_kmodulesxyz_client_go_api_v1_HealthCheckSpec(ref common.ReferenceCal
 	}
 }
 
+func schema_kmodulesxyz_client_go_api_v1_ImageInfo(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"lineages": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kmodules.xyz/client-go/api/v1.Lineage"),
+									},
+								},
+							},
+						},
+					},
+					"pullSecrets": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kmodules.xyz/client-go/api/v1.PullSecrets"),
+						},
+					},
+				},
+				Required: []string{"pullSecrets"},
+			},
+		},
+		Dependencies: []string{
+			"kmodules.xyz/client-go/api/v1.Lineage", "kmodules.xyz/client-go/api/v1.PullSecrets"},
+	}
+}
+
+func schema_kmodulesxyz_client_go_api_v1_Lineage(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"chain": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kmodules.xyz/client-go/api/v1.ObjectInfo"),
+									},
+								},
+							},
+						},
+					},
+					"containers": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"kmodules.xyz/client-go/api/v1.ObjectInfo"},
+	}
+}
+
 func schema_kmodulesxyz_client_go_api_v1_ObjectID(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -18309,6 +18405,39 @@ func schema_kmodulesxyz_client_go_api_v1_ObjectReference(ref common.ReferenceCal
 	}
 }
 
+func schema_kmodulesxyz_client_go_api_v1_PullSecrets(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"namespace": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"refs": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/api/core/v1.LocalObjectReference"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.LocalObjectReference"},
+	}
+}
+
 func schema_kmodulesxyz_client_go_api_v1_ReadonlyHealthCheckSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -18359,15 +18488,13 @@ func schema_kmodulesxyz_client_go_api_v1_ResourceID(ref common.ReferenceCallback
 					},
 					"version": {
 						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Name is the plural name of the resource to serve.  It must match the name of the CustomResourceDefinition-registration too: plural.group and it must be all lowercase.",
-							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -18375,20 +18502,18 @@ func schema_kmodulesxyz_client_go_api_v1_ResourceID(ref common.ReferenceCallback
 					"kind": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Kind is the serialized kind of the resource.  It is normally CamelCase and singular.",
-							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"scope": {
 						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
-				Required: []string{"group", "version", "name", "kind", "scope"},
+				Required: []string{"group"},
 			},
 		},
 	}
@@ -19411,8 +19536,9 @@ func schema_kmodulesxyz_objectstore_api_api_v1_AzureSpec(ref common.ReferenceCal
 				Properties: map[string]spec.Schema{
 					"container": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"prefix": {
@@ -19428,6 +19554,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_AzureSpec(ref common.ReferenceCal
 						},
 					},
 				},
+				Required: []string{"container"},
 			},
 		},
 	}
@@ -19441,8 +19568,9 @@ func schema_kmodulesxyz_objectstore_api_api_v1_B2Spec(ref common.ReferenceCallba
 				Properties: map[string]spec.Schema{
 					"bucket": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"prefix": {
@@ -19458,6 +19586,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_B2Spec(ref common.ReferenceCallba
 						},
 					},
 				},
+				Required: []string{"bucket"},
 			},
 		},
 	}
@@ -19526,8 +19655,9 @@ func schema_kmodulesxyz_objectstore_api_api_v1_GCSSpec(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"bucket": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"prefix": {
@@ -19543,6 +19673,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_GCSSpec(ref common.ReferenceCallb
 						},
 					},
 				},
+				Required: []string{"bucket"},
 			},
 		},
 	}
@@ -19730,8 +19861,9 @@ func schema_kmodulesxyz_objectstore_api_api_v1_LocalSpec(ref common.ReferenceCal
 					},
 					"mountPath": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"subPath": {
@@ -19741,6 +19873,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_LocalSpec(ref common.ReferenceCal
 						},
 					},
 				},
+				Required: []string{"mountPath"},
 			},
 		},
 		Dependencies: []string{
@@ -19774,14 +19907,16 @@ func schema_kmodulesxyz_objectstore_api_api_v1_S3Spec(ref common.ReferenceCallba
 				Properties: map[string]spec.Schema{
 					"endpoint": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"bucket": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"prefix": {
@@ -19797,6 +19932,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_S3Spec(ref common.ReferenceCallba
 						},
 					},
 				},
+				Required: []string{"endpoint", "bucket"},
 			},
 		},
 	}
@@ -19810,8 +19946,9 @@ func schema_kmodulesxyz_objectstore_api_api_v1_SwiftSpec(ref common.ReferenceCal
 				Properties: map[string]spec.Schema{
 					"container": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"prefix": {
@@ -19821,6 +19958,7 @@ func schema_kmodulesxyz_objectstore_api_api_v1_SwiftSpec(ref common.ReferenceCal
 						},
 					},
 				},
+				Required: []string{"container"},
 			},
 		},
 	}
@@ -24666,6 +24804,90 @@ func schema_apimachinery_apis_ui_v1alpha1_PGSetting(ref common.ReferenceCallback
 	}
 }
 
+func schema_apimachinery_apis_ui_v1alpha1_PodInsight(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PodInsight gives us insight about the connection status and query traffics of individual pods",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"podName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"questions": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"slowQueries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"abortedClientConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"connectedClientConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"createdClientConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"abortedServerConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"connectedServerConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"createdServerConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"queryInsight": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.RuleExecution"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"podName"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/ui/v1alpha1.RuleExecution"},
+	}
+}
+
 func schema_apimachinery_apis_ui_v1alpha1_PostgresConnectionInfo(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -25387,6 +25609,552 @@ func schema_apimachinery_apis_ui_v1alpha1_PostgresVacuumInfo(ref common.Referenc
 	}
 }
 
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsight(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLInsight is the Schema for the proxysqlinsights API",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsightSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha2.ProxySQLStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "kubedb.dev/apimachinery/apis/kubedb/v1alpha2.ProxySQLStatus", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsightSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsightList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLInsightList contains a list of ProxySQLInsight",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsight"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLInsight"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLInsightSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLInsightSpec defines the desired state of ProxySQLInsight",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"version": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"maxConnections": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"longQueryTimeThreshold": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"podInsights": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.PodInsight"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"version", "status"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ui/v1alpha1.PodInsight"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueries(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLQueries is the Schema for the proxysqlslowqueries API",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueriesSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueriesSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueriesList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLQueriesList contains a list of ProxySQLQueries",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueries"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQueries"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLQueriesSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLQueriesSpec defines the desired state of ProxySQLQueries",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"queries": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQuerySpec"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"queries"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLQuerySpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLQuerySpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLQuerySpec displays the slow queries on each individual pod",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"podName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"slowQueries": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSlowQuerySpec"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"podName"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSlowQuerySpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettings(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLSettings is the Schema for the ProxySQLSettingss API",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettingsSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettingsSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettingsList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLSettingsList contains a list of ProxySQLSettings",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettings"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta", "kubedb.dev/apimachinery/apis/ui/v1alpha1.ProxySQLSettings"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLSettingsSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLSettingsSpec defines the desired state of ProxySQLSettings",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mysql_query_rules": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/runtime.RawExtension"),
+									},
+								},
+							},
+						},
+					},
+					"mysql_variables": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/runtime.RawExtension"),
+						},
+					},
+					"admin_variables": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/runtime.RawExtension"),
+						},
+					},
+					"mysql_servers": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/runtime.RawExtension"),
+									},
+								},
+							},
+						},
+					},
+					"proxysql_servers": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/runtime.RawExtension"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/runtime.RawExtension"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_ProxySQLSlowQuerySpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ProxySQLSlowQuerySpec explains each individual slow queries with necessary details",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"digestText": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"schemaName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"username": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"hostGroup": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"countStar": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"firstSeen": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"lastSeen": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"sumTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"minTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"maxTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"averageTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"rowsAffected": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"rowsSent": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+				},
+				Required: []string{"digestText", "schemaName", "countStar", "sumTime", "minTime", "maxTime", "averageTime"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+	}
+}
+
 func schema_apimachinery_apis_ui_v1alpha1_RedisDatabaseSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -25901,5 +26669,31 @@ func schema_apimachinery_apis_ui_v1alpha1_RedisSchemaOverviewSpec(ref common.Ref
 		},
 		Dependencies: []string{
 			"kubedb.dev/apimachinery/apis/ui/v1alpha1.RedisDatabaseSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ui_v1alpha1_RuleExecution(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "RuleExecution gives us insight about the types of executed queries, based on the mysql_query_rules tables. To see the digest for corresponding ruleId , please refer to proxysqlsettings api.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ruleId": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"hits": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+				},
+				Required: []string{"ruleId", "hits"},
+			},
+		},
 	}
 }
