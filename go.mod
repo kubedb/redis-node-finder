@@ -3,24 +3,27 @@ module kubedb.dev/redis-node-finder
 go 1.18
 
 require (
-	github.com/spf13/cobra v1.6.0
-	go.bytebuilders.dev/license-verifier v0.12.1
+	github.com/spf13/cobra v1.7.0
+	go.bytebuilders.dev/license-verifier v0.13.2
 	gomodules.xyz/flags v0.1.3
 	gomodules.xyz/runtime v0.3.0
-	gomodules.xyz/x v0.0.14
+	gomodules.xyz/x v0.0.15
 	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.25.3
 	k8s.io/klog/v2 v2.80.1
-	kmodules.xyz/client-go v0.25.17
-	kmodules.xyz/custom-resources v0.25.1
-	kubedb.dev/apimachinery v0.31.0
+	kmodules.xyz/client-go v0.25.29
+	kmodules.xyz/custom-resources v0.25.2
+	kubedb.dev/apimachinery v0.34.1-0.20230814034200-4ce21bc51a16
 )
 
 require (
-	github.com/kr/pretty v0.3.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.4.0 // indirect
-	github.com/onsi/gomega v1.24.0 // indirect
+	github.com/PuerkitoBio/purell v1.2.0 // indirect
+	github.com/cert-manager/cert-manager v1.9.1 // indirect
+	github.com/onsi/gomega v1.24.2 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.59.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
+	sigs.k8s.io/gateway-api v0.4.3 // indirect
 )
 
 require (
@@ -31,16 +34,16 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/Masterminds/semver/v3 v3.1.1 // indirect
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -58,12 +61,11 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -83,15 +85,15 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/oauth2 v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/oauth2 v0.7.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/encoding v0.0.7 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gomodules.xyz/mergo v0.3.13 // indirect
 	gomodules.xyz/pointer v0.1.0 // indirect
 	gomodules.xyz/sets v0.2.1 // indirect
@@ -106,9 +108,9 @@ require (
 	k8s.io/component-base v0.25.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
 	k8s.io/utils v0.0.0-20221012122500-cfd413dd9e85 // indirect
-	kmodules.xyz/monitoring-agent-api v0.25.0 // indirect
-	kmodules.xyz/objectstore-api v0.25.1-0.20221104003322-f0289b5b6ca2 // indirect
-	kmodules.xyz/offshoot-api v0.25.0 // indirect
+	kmodules.xyz/monitoring-agent-api v0.25.1 // indirect
+	kmodules.xyz/objectstore-api v0.25.1 // indirect
+	kmodules.xyz/offshoot-api v0.25.4 // indirect
 	sigs.k8s.io/controller-runtime v0.13.1 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
@@ -119,11 +121,11 @@ require (
 
 replace github.com/Masterminds/sprig/v3 => github.com/gomodules/sprig/v3 v3.2.3-0.20220405051441-0a8a99bac1b8
 
-replace sigs.k8s.io/controller-runtime => github.com/kmodules/controller-runtime v0.13.1-0.20220917045846-a0df7cc5e5ee
+replace sigs.k8s.io/controller-runtime => github.com/kmodules/controller-runtime v0.13.1-0.20230725210630-f8273f9c4412
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.6
 
-replace k8s.io/apiserver => github.com/kmodules/apiserver v0.25.2-0.20220917044909-4ac5fceca518
+replace k8s.io/apiserver => github.com/kmodules/apiserver v0.25.2-0.20230712090038-ce87ebac4a3d
 
 replace k8s.io/kubernetes => github.com/kmodules/kubernetes v1.26.0-alpha.0.0.20220917022409-54ac9f3f1315
 
