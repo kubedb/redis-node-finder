@@ -25,16 +25,22 @@ import (
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	promapi "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gomodules.xyz/pointer"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	meta_util "kmodules.xyz/client-go/meta"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
 func (k *Kafka) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
 	return crds.MustCustomResourceDefinition(SchemeGroupVersion.WithResource(ResourcePluralKafka))
+}
+
+func (k *Kafka) AsOwner() *meta.OwnerReference {
+	return meta.NewControllerRef(k, SchemeGroupVersion.WithKind(ResourceKindKafka))
 }
 
 func (k *Kafka) ResourceShortCode() string {
@@ -80,6 +86,10 @@ func (k *Kafka) GoverningServiceNameController() string {
 
 func (k *Kafka) GoverningServiceNameBroker() string {
 	return meta_util.NameWithSuffix(k.ServiceName(), KafkaNodeRolesBrokers)
+}
+
+func (k *Kafka) GoverningServiceNameCruiseControl() string {
+	return meta_util.NameWithSuffix(k.ServiceName(), KafkaNodeRolesCruiseControl)
 }
 
 func (k *Kafka) StandbyServiceName() string {
@@ -129,6 +139,46 @@ func (k *Kafka) BrokerServiceLabels() map[string]string {
 	return meta_util.OverwriteKeys(k.offshootLabels(k.OffshootLabels(), k.BrokerNodeSelectors()))
 }
 
+type kafkaStatsService struct {
+	*Kafka
+}
+
+func (ks kafkaStatsService) TLSConfig() *promapi.TLSConfig {
+	return nil
+}
+
+func (ks kafkaStatsService) GetNamespace() string {
+	return ks.Kafka.GetNamespace()
+}
+
+func (ks kafkaStatsService) ServiceName() string {
+	return ks.OffshootName() + "-stats"
+}
+
+func (ks kafkaStatsService) ServiceMonitorName() string {
+	return ks.ServiceName()
+}
+
+func (ks kafkaStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return ks.OffshootLabels()
+}
+
+func (ks kafkaStatsService) Path() string {
+	return DefaultStatsPath
+}
+
+func (ks kafkaStatsService) Scheme() string {
+	return ""
+}
+
+func (k *Kafka) StatsService() mona.StatsAccessor {
+	return &kafkaStatsService{k}
+}
+
+func (k *Kafka) StatsServiceLabels() map[string]string {
+	return k.ServiceLabels(StatsServiceAlias, map[string]string{LabelRole: RoleStats})
+}
+
 func (k *Kafka) PodControllerLabels(extraLabels ...map[string]string) map[string]string {
 	return k.offshootLabels(meta_util.OverwriteKeys(k.OffshootSelectors(), extraLabels...), k.Spec.PodTemplate.Controller.Labels)
 }
@@ -170,6 +220,10 @@ func (k *Kafka) ConfigSecretName(role KafkaNodeRoleType) string {
 		return meta_util.NameWithSuffix(k.OffshootName(), "broker-config")
 	}
 	return meta_util.NameWithSuffix(k.OffshootName(), "config")
+}
+
+func (k *Kafka) CruiseControlConfigSecretName() string {
+	return meta_util.NameWithSuffix(k.OffshootName(), "cruise-control-config")
 }
 
 func (k *Kafka) DefaultUserCredSecretName(username string) string {
@@ -315,4 +369,8 @@ func (k *Kafka) GetConnectionScheme() string {
 		scheme = "https"
 	}
 	return scheme
+}
+
+func (k *Kafka) GetCruiseControlClientID() string {
+	return meta_util.NameWithSuffix(k.Name, "cruise-control")
 }
