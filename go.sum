@@ -408,7 +408,7 @@ github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvW
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
-github.com/kmodules/apiserver v0.25.2-0.20230712090038-ce87ebac4a3d/go.mod h1:IB1EhM28U3cCrV+VNC06p1/YSZMCNYiH+P5sI5yLaZY=
+github.com/kmodules/apiserver v0.25.2-0.20230817060727-aa2afd31b825/go.mod h1:IB1EhM28U3cCrV+VNC06p1/YSZMCNYiH+P5sI5yLaZY=
 github.com/kmodules/controller-runtime v0.13.1-0.20230725210630-f8273f9c4412 h1:sy5gE/M+SfQdIK9wh1VIT0RhXxiVlPRQxpGy2TVvnzE=
 github.com/kmodules/controller-runtime v0.13.1-0.20230725210630-f8273f9c4412/go.mod h1:Zbz+el8Yg31jubvAEyglRZGdLAjplZl+PgtYNI6WNTI=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
@@ -1270,8 +1270,8 @@ k8s.io/utils v0.0.0-20210820185131-d34e5cb4466e/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20221012122500-cfd413dd9e85 h1:cTdVh7LYu82xeClmfzGtgyspNh6UxpwLWGi8R4sspNo=
 k8s.io/utils v0.0.0-20221012122500-cfd413dd9e85/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
-kmodules.xyz/client-go v0.25.29 h1:6CYoTJdLBqdXAaNtWJb1LLowG6KuDwb53ey8u7DS88Y=
-kmodules.xyz/client-go v0.25.29/go.mod h1:r/Va2Y6t1G8X1sPRjrQC6FWB3oh/i6rjssmlfJnbCmg=
+kmodules.xyz/client-go v0.25.30 h1:4qOhs1kX0oNl9tcY98PEtiUlD6TZqK9CRfqzfhZApsk=
+kmodules.xyz/client-go v0.25.30/go.mod h1:r/Va2Y6t1G8X1sPRjrQC6FWB3oh/i6rjssmlfJnbCmg=
 kmodules.xyz/custom-resources v0.25.2 h1:+PJgUZvbbSgyNT7EX9gUZ3PIzY2LAW03TDW8cevvXqo=
 kmodules.xyz/custom-resources v0.25.2/go.mod h1:b9XjjKQMZ6KrLHXKqQz7YwV3M3BK8Hwi4KEwu5RadCo=
 kmodules.xyz/monitoring-agent-api v0.25.1 h1:E1H8U/vMfYQ8wevmJv6Lcj0Z4DF7cH3hZ2xkFgG+xKk=
@@ -1280,8 +1280,8 @@ kmodules.xyz/objectstore-api v0.25.1 h1:lYQlxk+edgZYakhq+OoRBXTbHbZTGKhatGZWnKix
 kmodules.xyz/objectstore-api v0.25.1/go.mod h1:6wBtktN7/EXyE429OTCB9nwEe+d0ADaoCtm6+IZnJso=
 kmodules.xyz/offshoot-api v0.25.4 h1:IjJNvkphcdYUG8XO/pBwXpuP8W+jxAWJZ3yH8vgI/as=
 kmodules.xyz/offshoot-api v0.25.4/go.mod h1:PUk4EuJFhhyQykCflHj7EgXcljGIqs9vi0IN0RpxtY4=
-kubedb.dev/apimachinery v0.34.1-0.20230814034200-4ce21bc51a16 h1:eQPrw1YyUHAsptlSd3lf3FtOWqq27vyCd9dy0wd3Z2Q=
-kubedb.dev/apimachinery v0.34.1-0.20230814034200-4ce21bc51a16/go.mod h1:K4tmJODPLOBgYGA/4N8Cx4ZwX1ZtZF8E+O1NIRWwyzA=
+kubedb.dev/apimachinery v0.34.1-0.20230818145217-8e2aab0c176e h1:pKnsgibgJTZpwk3Caa/Oy1NtU4rShbJtnsZHIFaWOj8=
+kubedb.dev/apimachinery v0.34.1-0.20230818145217-8e2aab0c176e/go.mod h1:K4tmJODPLOBgYGA/4N8Cx4ZwX1ZtZF8E+O1NIRWwyzA=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
