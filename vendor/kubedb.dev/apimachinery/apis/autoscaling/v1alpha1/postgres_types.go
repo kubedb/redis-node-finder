@@ -70,6 +70,9 @@ type PostgresAutoscalerSpec struct {
 }
 
 type PostgresComputeAutoscalerSpec struct {
+	// +optional
+	NodeTopology *NodeTopology `json:"nodeTopology,omitempty"`
+
 	Postgres *ComputeAutoscalerSpec `json:"postgres,omitempty"`
 }
 

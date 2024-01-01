@@ -27,6 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // log is for logging in this package.
@@ -88,7 +89,7 @@ func (in *MongoDBAutoscaler) SetDefaults(db *dbapi.MongoDB) {
 		setInMemoryDefaults(in.Spec.Compute.Shard, db.Spec.StorageEngine)
 		setInMemoryDefaults(in.Spec.Compute.ConfigServer, db.Spec.StorageEngine)
 		setInMemoryDefaults(in.Spec.Compute.Mongos, db.Spec.StorageEngine)
-		// no need for Defaulting the Arbiter & Hidden Node.
+		// no need for Defaulting the Arbiter & Hidden PodResources.
 		// As arbiter is not a data-node.  And hidden doesn't have the impact of storageEngine (it can't be InMemory).
 	}
 }
@@ -98,19 +99,19 @@ func (in *MongoDBAutoscaler) SetDefaults(db *dbapi.MongoDB) {
 var _ webhook.Validator = &MongoDBAutoscaler{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *MongoDBAutoscaler) ValidateCreate() error {
+func (in *MongoDBAutoscaler) ValidateCreate() (admission.Warnings, error) {
 	mongoLog.Info("validate create", "name", in.Name)
-	return in.validate()
+	return nil, in.validate()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *MongoDBAutoscaler) ValidateUpdate(old runtime.Object) error {
+func (in *MongoDBAutoscaler) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	mongoLog.Info("validate create", "name", in.Name)
-	return in.validate()
+	return nil, in.validate()
 }
 
-func (_ MongoDBAutoscaler) ValidateDelete() error {
-	return nil
+func (_ MongoDBAutoscaler) ValidateDelete() (admission.Warnings, error) {
+	return nil, nil
 }
 
 func (in *MongoDBAutoscaler) validate() error {

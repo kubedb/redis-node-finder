@@ -27,6 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // log is for logging in this package.
@@ -53,19 +54,31 @@ func (in *ElasticsearchAutoscaler) setDefaults() {
 
 	if in.Spec.Storage != nil {
 		setDefaultStorageValues(in.Spec.Storage.Node)
-		if in.Spec.Storage.Topology != nil {
-			setDefaultStorageValues(in.Spec.Storage.Topology.Master)
-			setDefaultStorageValues(in.Spec.Storage.Topology.Data)
-			setDefaultStorageValues(in.Spec.Storage.Topology.Ingest)
-		}
+		setDefaultStorageValues(in.Spec.Storage.Master)
+		setDefaultStorageValues(in.Spec.Storage.Data)
+		setDefaultStorageValues(in.Spec.Storage.Ingest)
+		setDefaultStorageValues(in.Spec.Storage.DataContent)
+		setDefaultStorageValues(in.Spec.Storage.DataCold)
+		setDefaultStorageValues(in.Spec.Storage.DataWarm)
+		setDefaultStorageValues(in.Spec.Storage.DataFrozen)
+		setDefaultStorageValues(in.Spec.Storage.DataHot)
+		setDefaultStorageValues(in.Spec.Storage.ML)
+		setDefaultStorageValues(in.Spec.Storage.Transform)
+		setDefaultStorageValues(in.Spec.Storage.Coordinating)
 	}
 	if in.Spec.Compute != nil {
 		setDefaultComputeValues(in.Spec.Compute.Node)
-		if in.Spec.Compute.Topology != nil {
-			setDefaultComputeValues(in.Spec.Compute.Topology.Master)
-			setDefaultComputeValues(in.Spec.Compute.Topology.Data)
-			setDefaultComputeValues(in.Spec.Compute.Topology.Ingest)
-		}
+		setDefaultComputeValues(in.Spec.Compute.Master)
+		setDefaultComputeValues(in.Spec.Compute.Data)
+		setDefaultComputeValues(in.Spec.Compute.Ingest)
+		setDefaultComputeValues(in.Spec.Compute.DataContent)
+		setDefaultComputeValues(in.Spec.Compute.DataCold)
+		setDefaultComputeValues(in.Spec.Compute.DataWarm)
+		setDefaultComputeValues(in.Spec.Compute.DataFrozen)
+		setDefaultComputeValues(in.Spec.Compute.DataHot)
+		setDefaultComputeValues(in.Spec.Compute.ML)
+		setDefaultComputeValues(in.Spec.Compute.Transform)
+		setDefaultComputeValues(in.Spec.Compute.Coordinating)
 	}
 }
 
@@ -85,18 +98,18 @@ func (in *ElasticsearchAutoscaler) setOpsReqOptsDefaults() {
 var _ webhook.Validator = &ElasticsearchAutoscaler{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (in *ElasticsearchAutoscaler) ValidateCreate() error {
+func (in *ElasticsearchAutoscaler) ValidateCreate() (admission.Warnings, error) {
 	esLog.Info("validate create", "name", in.Name)
-	return in.validate()
+	return nil, in.validate()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (in *ElasticsearchAutoscaler) ValidateUpdate(old runtime.Object) error {
-	return in.validate()
+func (in *ElasticsearchAutoscaler) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
+	return nil, in.validate()
 }
 
-func (_ ElasticsearchAutoscaler) ValidateDelete() error {
-	return nil
+func (_ ElasticsearchAutoscaler) ValidateDelete() (admission.Warnings, error) {
+	return nil, nil
 }
 
 func (in *ElasticsearchAutoscaler) validate() error {
@@ -111,11 +124,12 @@ func (in *ElasticsearchAutoscaler) ValidateFields(es *dbapi.Elasticsearch) error
 		cm := in.Spec.Compute
 		if es.Spec.Topology != nil {
 			if cm.Node != nil {
-				return errors.New("Spec.Compute.Node is invalid for elastic-search topology")
+				return errors.New("Spec.Compute.PodResources is invalid for elastic-search topology")
 			}
 		} else {
-			if cm.Topology != nil {
-				return errors.New("Spec.Compute.Topology is invalid for basic elastic search structure")
+			if cm.Master != nil || cm.Data != nil || cm.Ingest != nil || cm.DataContent != nil || cm.DataCold != nil || cm.DataFrozen != nil ||
+				cm.DataWarm != nil || cm.DataHot != nil || cm.ML != nil || cm.Transform != nil || cm.Coordinating != nil {
+				return errors.New("only Spec.Compute.Node is valid for basic elastic search structure")
 			}
 		}
 	}
@@ -124,11 +138,12 @@ func (in *ElasticsearchAutoscaler) ValidateFields(es *dbapi.Elasticsearch) error
 		st := in.Spec.Storage
 		if es.Spec.Topology != nil {
 			if st.Node != nil {
-				return errors.New("Spec.Storage.Node is invalid for elastic-search topology")
+				return errors.New("Spec.Storage.PodResources is invalid for elastic-search topology")
 			}
 		} else {
-			if st.Topology != nil {
-				return errors.New("Spec.Storage.Topology is invalid for basic elastic search structure")
+			if st.Master != nil || st.Data != nil || st.Ingest != nil || st.DataContent != nil || st.DataCold != nil || st.DataFrozen != nil ||
+				st.DataWarm != nil || st.DataHot != nil || st.ML != nil || st.Transform != nil || st.Coordinating != nil {
+				return errors.New("only Spec.Storage.Node is valid for basic elastic search structure")
 			}
 		}
 	}

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// nolint:goconst
 package v1alpha2
 
 import (
@@ -39,6 +40,7 @@ import (
 	"kmodules.xyz/client-go/apiextensions"
 	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
+	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
@@ -385,6 +387,45 @@ func (e Elasticsearch) StatsServiceLabels() map[string]string {
 	return e.ServiceLabels(StatsServiceAlias, map[string]string{LabelRole: RoleStats})
 }
 
+func (e Elasticsearch) setContainerSecurityContextDefaults(esVersion *catalog.ElasticsearchVersion, podTemplate *ofst.PodTemplateSpec) {
+	if podTemplate == nil {
+		return
+	}
+	if podTemplate.Spec.ContainerSecurityContext == nil {
+		podTemplate.Spec.ContainerSecurityContext = &core.SecurityContext{}
+	}
+	if podTemplate.Spec.SecurityContext == nil {
+		podTemplate.Spec.SecurityContext = &core.PodSecurityContext{}
+	}
+	if podTemplate.Spec.SecurityContext.FSGroup == nil {
+		podTemplate.Spec.SecurityContext.FSGroup = esVersion.Spec.SecurityContext.RunAsUser
+	}
+	e.assignDefaultContainerSecurityContext(esVersion, podTemplate.Spec.ContainerSecurityContext)
+}
+
+func (e Elasticsearch) assignDefaultContainerSecurityContext(esVersion *catalog.ElasticsearchVersion, sc *core.SecurityContext) {
+	if sc.AllowPrivilegeEscalation == nil {
+		sc.AllowPrivilegeEscalation = pointer.BoolP(false)
+	}
+	if sc.Capabilities == nil {
+		sc.Capabilities = &core.Capabilities{
+			Drop: []core.Capability{"ALL"},
+		}
+	}
+	if sc.RunAsNonRoot == nil {
+		sc.RunAsNonRoot = pointer.BoolP(true)
+	}
+	if sc.RunAsUser == nil {
+		sc.RunAsUser = esVersion.Spec.SecurityContext.RunAsUser
+	}
+	if sc.RunAsGroup == nil {
+		sc.RunAsGroup = esVersion.Spec.SecurityContext.RunAsUser
+	}
+	if sc.SeccompProfile == nil {
+		sc.SeccompProfile = secomp.DefaultSeccompProfile()
+	}
+}
+
 func (e *Elasticsearch) SetDefaults(esVersion *catalog.ElasticsearchVersion, topology *core_util.Topology) {
 	if e == nil {
 		return
@@ -563,37 +604,44 @@ func (e *Elasticsearch) SetDefaults(esVersion *catalog.ElasticsearchVersion, top
 
 	// set default kernel settings
 	// -	Ref: https://www.elastic.co/guide/en/elasticsearch/reference/7.9/vm-max-map-count.html
+	// if kernelSettings defaults is enabled systls-init container will be injected with the default vm_map_count settings
+	// if not init container will not be injected and default values will not be set
 	if e.Spec.KernelSettings == nil {
 		e.Spec.KernelSettings = &KernelSettings{
-			Privileged: true,
-			Sysctls: []core.Sysctl{
-				{
-					Name:  "vm.max_map_count",
-					Value: "262144",
-				},
-			},
+			DisableDefaults: false,
 		}
 	}
-
-	if e.Spec.PodTemplate.Spec.ContainerSecurityContext == nil {
-		e.Spec.PodTemplate.Spec.ContainerSecurityContext = &core.SecurityContext{
-			Privileged: pointer.BoolP(false),
-			Capabilities: &core.Capabilities{
-				Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
-			},
+	if !e.Spec.KernelSettings.DisableDefaults {
+		e.Spec.KernelSettings.Privileged = true
+		vmMapCountNotSet := true
+		if len(e.Spec.KernelSettings.Sysctls) != 0 {
+			for i := 0; i < len(e.Spec.KernelSettings.Sysctls); i++ {
+				if e.Spec.KernelSettings.Sysctls[i].Name == "vm.max_map_count" {
+					vmMapCountNotSet = false
+					break
+				}
+			}
 		}
-	}
-
-	// Add default Elasticsearch UID
-	if e.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser == nil &&
-		esVersion.Spec.SecurityContext.RunAsUser != nil {
-		e.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsUser = esVersion.Spec.SecurityContext.RunAsUser
+		if vmMapCountNotSet {
+			e.Spec.KernelSettings.Sysctls = append(e.Spec.KernelSettings.Sysctls, core.Sysctl{
+				Name:  "vm.max_map_count",
+				Value: "262144",
+			})
+		}
 	}
 
 	e.setDefaultAffinity(&e.Spec.PodTemplate, e.OffshootSelectors(), topology)
-	e.SetTLSDefaults(esVersion)
+	e.setContainerSecurityContextDefaults(esVersion, &e.Spec.PodTemplate)
 	e.setDefaultInternalUsersAndRoleMappings(esVersion)
+	e.SetMetricsExporterDefaults(esVersion)
+	e.SetTLSDefaults(esVersion)
+}
+
+func (e *Elasticsearch) SetMetricsExporterDefaults(esVersion *catalog.ElasticsearchVersion) {
 	e.Spec.Monitor.SetDefaults()
+	if e.Spec.Monitor != nil && e.Spec.Monitor.Prometheus != nil && e.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsUser == nil {
+		e.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsUser = esVersion.Spec.SecurityContext.RunAsUser
+	}
 }
 
 // setDefaultAffinity
