@@ -69,6 +69,9 @@ type ProxySQLAutoscalerSpec struct {
 }
 
 type ProxySQLComputeAutoscalerSpec struct {
+	// +optional
+	NodeTopology *NodeTopology `json:"nodeTopology,omitempty"`
+
 	ProxySQL *ComputeAutoscalerSpec `json:"proxysql,omitempty"`
 }
 

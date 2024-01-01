@@ -322,20 +322,20 @@ const (
 	MariaDBDataVolumeName                = "data"
 
 	// =========================== PostgreSQL Constants ============================
-	PostgresDatabasePortName         = "db"
-	PostgresPrimaryServicePortName   = "primary"
-	PostgresStandbyServicePortName   = "standby"
-	PostgresDatabasePort             = 5432
-	PostgresPodPrimary               = "primary"
-	PostgresPodStandby               = "standby"
-	EnvPostgresUser                  = "POSTGRES_USER"
-	EnvPostgresPassword              = "POSTGRES_PASSWORD"
-	PostgresRootUser                 = "postgres"
-	PostgresCoordinatorContainerName = "pg-coordinator"
-	PostgresCoordinatorPort          = 2380
-	PostgresCoordinatorPortName      = "coordinator"
-	PostgresContainerName            = ResourceSingularPostgres
-
+	PostgresDatabasePortName          = "db"
+	PostgresPrimaryServicePortName    = "primary"
+	PostgresStandbyServicePortName    = "standby"
+	PostgresDatabasePort              = 5432
+	PostgresPodPrimary                = "primary"
+	PostgresPodStandby                = "standby"
+	EnvPostgresUser                   = "POSTGRES_USER"
+	EnvPostgresPassword               = "POSTGRES_PASSWORD"
+	PostgresRootUser                  = "postgres"
+	PostgresCoordinatorContainerName  = "pg-coordinator"
+	PostgresCoordinatorPort           = 2380
+	PostgresCoordinatorPortName       = "coordinator"
+	PostgresContainerName             = ResourceSingularPostgres
+	PostgresInitContainerName         = "postgres-init-container"
 	PostgresCoordinatorClientPort     = 2379
 	PostgresCoordinatorClientPortName = "coordinatclient"
 
@@ -377,6 +377,9 @@ const (
 
 	SharedBuffersGbAsKiloByte = 1024 * 1024
 	SharedBuffersMbAsKiloByte = 1024
+	IPS_LOCK                  = "IPC_LOCK"
+	SYS_RESOURCE              = "SYS_RESOURCE"
+	DropCapabilityALL         = "ALL"
 
 	// =========================== ProxySQL Constants ============================
 	LabelProxySQLName                  = ProxySQLKey + "/name"
@@ -518,12 +521,13 @@ const (
 	KafkaPortNameCruiseControlREST     = "cc-rest"
 	KafkaBrokerClientPortName          = "broker"
 	KafkaControllerClientPortName      = "controller"
-	KafkaPortNameInternal              = "internal"
+	KafkaPortNameLocal                 = "local"
 	KafkaTopicNameHealth               = "kafka-health"
 	KafkaTopicDeletionThresholdOffset  = 1000
+	KafkaBrokerMaxID                   = 1000
 	KafkaRESTPort                      = 9092
 	KafkaControllerRESTPort            = 9093
-	KafkaInternalRESTPort              = 29092
+	KafkaLocalRESTPort                 = 29092
 	KafkaCruiseControlRESTPort         = 9090
 	KafkaCruiseControlListenerPort     = 9094
 	KafkaCCDefaultInNetwork            = 500000
@@ -656,6 +660,15 @@ const (
 )
 
 var (
+	DefaultInitContainerResource = core.ResourceRequirements{
+		Requests: core.ResourceList{
+			core.ResourceCPU:    resource.MustParse(".200"),
+			core.ResourceMemory: resource.MustParse("256Mi"),
+		},
+		Limits: core.ResourceList{
+			core.ResourceMemory: resource.MustParse("512Mi"),
+		},
+	}
 	DefaultResources = core.ResourceRequirements{
 		Requests: core.ResourceList{
 			core.ResourceCPU:    resource.MustParse(".500"),
@@ -675,6 +688,17 @@ var (
 			core.ResourceMemory: resource.MustParse("256Mi"),
 		},
 	}
+	defaultArbiter = core.ResourceRequirements{
+		Requests: core.ResourceList{
+			core.ResourceStorage: resource.MustParse("2Gi"),
+			// these are the default cpu & memory for a coordinator container
+			core.ResourceCPU:    resource.MustParse(".200"),
+			core.ResourceMemory: resource.MustParse("256Mi"),
+		},
+		Limits: core.ResourceList{
+			core.ResourceMemory: resource.MustParse("256Mi"),
+		},
+	}
 
 	// DefaultResourcesElasticSearch must be used for elasticsearch
 	// to avoid OOMKILLED while deploying ES V8
@@ -687,4 +711,20 @@ var (
 			core.ResourceMemory: resource.MustParse("1.5Gi"),
 		},
 	}
+)
+
+func DefaultArbiter(computeOnly bool) core.ResourceRequirements {
+	cp := defaultArbiter.DeepCopy()
+	if computeOnly {
+		delete(cp.Requests, core.ResourceStorage)
+	}
+	return *cp
+}
+
+const (
+	InitFromGit          = "init-from-git"
+	InitFromGitMountPath = "/git"
+	GitSecretVolume      = "git-secret"
+	GitSecretMountPath   = "/etc/git-secret"
+	GitSyncContainerName = "git-sync"
 )
