@@ -595,8 +595,8 @@ k8s.io/utils v0.0.0-20231127182322-b307cd553661 h1:FepOBzJ0GXm8t0su67ln2wAZjbQ6R
 k8s.io/utils v0.0.0-20231127182322-b307cd553661/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 kmodules.xyz/apiversion v0.2.0 h1:vAQYqZFm4xu4pbB1cAdHbFEPES6EQkcR4wc06xdTOWk=
 kmodules.xyz/apiversion v0.2.0/go.mod h1:oPX8g8LvlPdPX3Yc5YvCzJHQnw3YF/X4/jdW0b1am80=
-kmodules.xyz/client-go v0.29.5 h1:iRl4MoV+96TM1csInOCWjn5xSOXzuYlil6CO40vXLHU=
-kmodules.xyz/client-go v0.29.5/go.mod h1:pHuzpwzEcDUIGjVVvwz9N8lY+6A7HXwvs2d7NtK7Hho=
+kmodules.xyz/client-go v0.29.6-0.20240106073345-92f92b4d6985 h1:TrYD40aWXVm+8KkFoQ+FSw5rr6DN2EwjYX9MCzy5y3c=
+kmodules.xyz/client-go v0.29.6-0.20240106073345-92f92b4d6985/go.mod h1:pHuzpwzEcDUIGjVVvwz9N8lY+6A7HXwvs2d7NtK7Hho=
 kmodules.xyz/custom-resources v0.29.0 h1:RaDM2+wSVXiwIvLqmkTVYpwoH83AC8wruXe2p2rOZNY=
 kmodules.xyz/custom-resources v0.29.0/go.mod h1:MzZyXtxdg1PDxGk3RTTO1Xv3KiVqZnIonSwmxVbagOY=
 kmodules.xyz/monitoring-agent-api v0.29.0 h1:gpFl6OZrlMLb/ySMHdREI9EwGtnJ91oZBn9H1UFRwB4=
@@ -607,10 +607,10 @@ kmodules.xyz/offshoot-api v0.29.0 h1:GHLhxxT9jU1N8+FvOCCeJNyU5g0duYS46UGrs6AHNLY
 kmodules.xyz/offshoot-api v0.29.0/go.mod h1:5NxhBblXoDHWStx9HCDJR2KFTwYjEZ7i1Id3jelIunw=
 kmodules.xyz/prober v0.29.0 h1:Ex7m4F9rH7uWNNJlLgP63ROOM+nUATJkC2L5OQ7nwMg=
 kmodules.xyz/prober v0.29.0/go.mod h1:UtK+HKyI1lFLEKX+HFLyOCVju6TO93zv3kwGpzqmKOo=
-kmodules.xyz/resource-metadata v0.18.2-0.20240101021508-7630737cb0e6 h1:a1ZAbqyIL41vgnsbkKP64r9fQBOVxpmaM+5GpwPJhcc=
-kmodules.xyz/resource-metadata v0.18.2-0.20240101021508-7630737cb0e6/go.mod h1:XsCdEKjfoulX29tMGviDhjT/jLl158uvMvXlKOhK1as=
-kubedb.dev/apimachinery v0.40.1-0.20240104031132-a1d475ceb73e h1:W4P/V/i6PkCL6ODaG7M2669AhhnRv8PYhvOFHTrVeWg=
-kubedb.dev/apimachinery v0.40.1-0.20240104031132-a1d475ceb73e/go.mod h1:pa3rY23DEC7j4c0H2uIe6uG7YUbNnT1qA3p7UBr3pwQ=
+kmodules.xyz/resource-metadata v0.18.2-0.20240105072614-e92a8a48d400 h1:bmd9/fvbhE55xtMF9hXVzjoUZFLGjMfEoHSHu9Hw6Gc=
+kmodules.xyz/resource-metadata v0.18.2-0.20240105072614-e92a8a48d400/go.mod h1:XsCdEKjfoulX29tMGviDhjT/jLl158uvMvXlKOhK1as=
+kubedb.dev/apimachinery v0.40.1-0.20240106103518-87c402a1ae51 h1:6RgHui7DPEXOSGIAWY9N3gytdbQHH1Yry2hwKSQdDsc=
+kubedb.dev/apimachinery v0.40.1-0.20240106103518-87c402a1ae51/go.mod h1:pa3rY23DEC7j4c0H2uIe6uG7YUbNnT1qA3p7UBr3pwQ=
 kubestash.dev/apimachinery v0.3.1-0.20231231034418-cc46ddfd674a h1:zkRd7mpfFk2QtGKefGxZqpczy909KJCk4iPu9WOwCKU=
 kubestash.dev/apimachinery v0.3.1-0.20231231034418-cc46ddfd674a/go.mod h1:ImhcNxJIdObtmm1jPeOnvK9TrwS7bXqNa8I4Um/Vf1A=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
