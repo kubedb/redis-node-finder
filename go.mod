@@ -1,6 +1,6 @@
 module kubedb.dev/redis-node-finder
 
-go 1.21.5
+go 1.21.6
 
 require (
 	github.com/spf13/cobra v1.7.0
@@ -11,9 +11,9 @@ require (
 	k8s.io/apimachinery v0.29.0
 	k8s.io/client-go v0.29.0
 	k8s.io/klog/v2 v2.110.1
-	kmodules.xyz/client-go v0.29.6-0.20240106073345-92f92b4d6985
-	kmodules.xyz/custom-resources v0.29.0
-	kubedb.dev/apimachinery v0.40.1-0.20240106103518-87c402a1ae51
+	kmodules.xyz/client-go v0.29.6
+	kmodules.xyz/custom-resources v0.29.1
+	kubedb.dev/apimachinery v0.41.0-rc.0
 )
 
 require (
@@ -36,6 +36,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.4 // indirect
+	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -43,6 +44,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/google/pprof v0.0.0-20221118152302-e6195bd50e26 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
@@ -105,7 +107,7 @@ require (
 	kmodules.xyz/offshoot-api v0.29.0 // indirect
 	kmodules.xyz/prober v0.29.0 // indirect
 	kmodules.xyz/resource-metadata v0.18.2-0.20240105072614-e92a8a48d400 // indirect
-	kubestash.dev/apimachinery v0.3.1-0.20231231034418-cc46ddfd674a // indirect
+	kubestash.dev/apimachinery v0.4.0-rc.1 // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
 	sigs.k8s.io/gateway-api v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
@@ -117,7 +119,7 @@ require (
 
 replace github.com/Masterminds/sprig/v3 => github.com/gomodules/sprig/v3 v3.2.3-0.20220405051441-0a8a99bac1b8
 
-replace sigs.k8s.io/controller-runtime => github.com/kmodules/controller-runtime v0.16.1-0.20240104120228-ef547cbd1b75
+replace sigs.k8s.io/controller-runtime => github.com/kmodules/controller-runtime v0.16.1-0.20240107070718-8ff0ffb613fb
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.6
 
