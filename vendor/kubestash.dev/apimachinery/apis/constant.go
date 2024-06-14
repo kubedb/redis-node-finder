@@ -23,6 +23,7 @@ const (
 	KubeStashApp              = "kubestash.com/app"
 	KubeStashCleanupFinalizer = "kubestash.com/cleanup"
 	KubeDBGroupName           = "kubedb.com"
+	ElasticsearchGroupName    = "elasticsearch.kubedb.com"
 )
 
 const (
@@ -92,17 +93,17 @@ const (
 
 	KeyBlueprintName      = BackupBlueprintKey + "/name"
 	KeyBlueprintNamespace = BackupBlueprintKey + "/namespace"
-	KeyBlueprintSessions  = BackupBlueprintKey + "/sessions"
+	KeyBlueprintSessions  = BackupBlueprintKey + "/session-names"
 )
 
 // RBAC related
 const (
-	KubeStashBackupJobClusterRole       = "kubestash-backup-job"
-	KubeStashRestoreJobClusterRole      = "kubestash-restore-job"
-	KubeStashCronJobClusterRole         = "kubestash-cron-job"
-	KubeStashBackendJobClusterRole      = "kubestash-backend-job"
-	KubeStashBackendAccessorClusterRole = "kubestash-backend-accessor"
-	KubeStashPopulatorJobRole           = "kubestash-populator-job"
+	KubeStashBackupJobClusterRole          = "kubestash-backup-job"
+	KubeStashRestoreJobClusterRole         = "kubestash-restore-job"
+	KubeStashCronJobClusterRole            = "kubestash-cron-job"
+	KubeStashBackendJobClusterRole         = "kubestash-backend-job"
+	KubeStashStorageInitializerClusterRole = "kubestash-storage-initializer-job"
+	KubeStashPopulatorJobClusterRole       = "kubestash-populator-job"
 )
 
 // Reconciliation related
@@ -135,6 +136,7 @@ const (
 	ComponentWal            = "wal"
 	ComponentManifest       = "manifest"
 	ComponentVolumeSnapshot = "volumesnapshot"
+	ComponentDashboard      = "dashboard"
 )
 
 const (

@@ -18,6 +18,8 @@ limitations under the License.
 
 package v1alpha2
 
+type ClickHouseExpansion interface{}
+
 type DruidExpansion interface{}
 
 type ElasticsearchExpansion interface{}
@@ -27,6 +29,8 @@ type EtcdExpansion interface{}
 type FerretDBExpansion interface{}
 
 type KafkaExpansion interface{}
+
+type MSSQLServerExpansion interface{}
 
 type MariaDBExpansion interface{}
 

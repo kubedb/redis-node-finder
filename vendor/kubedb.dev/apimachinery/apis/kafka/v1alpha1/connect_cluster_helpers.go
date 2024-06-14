@@ -25,6 +25,7 @@ import (
 	"kubedb.dev/apimachinery/apis"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/apimachinery/apis/kafka"
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/crds"
 
@@ -240,8 +241,8 @@ func (k *ConnectCluster) SetHealthCheckerDefaults() {
 }
 
 func (k *ConnectCluster) SetDefaults() {
-	if k.Spec.TerminationPolicy == "" {
-		k.Spec.TerminationPolicy = api.TerminationPolicyDelete
+	if k.Spec.DeletionPolicy == "" {
+		k.Spec.DeletionPolicy = api.TerminationPolicyDelete
 	}
 
 	if k.Spec.Replicas == nil {
@@ -259,8 +260,8 @@ func (k *ConnectCluster) SetDefaults() {
 	k.setDefaultInitContainerSecurityContext(&k.Spec.PodTemplate)
 
 	dbContainer := coreutil.GetContainerByName(k.Spec.PodTemplate.Spec.Containers, ConnectClusterContainerName)
-	if dbContainer != nil {
-		apis.SetDefaultResourceLimits(&dbContainer.Resources, api.DefaultResources)
+	if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResources)
 	}
 
 	k.Spec.Monitor.SetDefaults()
@@ -309,17 +310,20 @@ func (k *ConnectCluster) setDefaultInitContainerSecurityContext(podTemplate *ofs
 		}
 
 		initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, strings.ToLower(connectorVersion.Spec.Type))
-
 		if initContainer == nil {
 			initContainer = &core.Container{
 				Name: strings.ToLower(connectorVersion.Spec.Type),
 			}
-			podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
+		}
+
+		if initContainer != nil && (initContainer.Resources.Requests == nil && initContainer.Resources.Limits == nil) {
+			apis.SetDefaultResourceLimits(&initContainer.Resources, kubedb.DefaultInitContainerResource)
 		}
 		if initContainer.SecurityContext == nil {
 			initContainer.SecurityContext = &core.SecurityContext{}
 		}
 		k.assignDefaultInitContainerSecurityContext(connectorVersion, initContainer.SecurityContext)
+		podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 	}
 }
 
@@ -339,12 +343,12 @@ func (k *ConnectCluster) setDefaultContainerSecurityContext(kfVersion *catalog.K
 		container = &core.Container{
 			Name: ConnectClusterContainerName,
 		}
-		podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, *container)
 	}
 	if container.SecurityContext == nil {
 		container.SecurityContext = &core.SecurityContext{}
 	}
 	k.assignDefaultContainerSecurityContext(kfVersion, container.SecurityContext)
+	podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *container)
 }
 
 func (k *ConnectCluster) assignDefaultInitContainerSecurityContext(connectorVersion *catalog.KafkaConnectorVersion, sc *core.SecurityContext) {

@@ -48,7 +48,7 @@ const (
 // Snapshot represents the state of a backup run to a particular Repository.
 // Multiple components of the same target may be backed up in the same Snapshot.
 // This is a namespaced CRD. It should be in the same namespace as the respective Repository.
-// Stash operator is responsible for creating Snapshot CR.
+// KubeStash operator is responsible for creating Snapshot CR.
 // Snapshot is not supposed to be created/edited by the end user.
 type Snapshot struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -95,7 +95,7 @@ type SnapshotSpec struct {
 	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
 
 	// Paused specifies whether the Snapshot is paused or not. If the Snapshot is paused,
-	// Stash will not process any further event for the Snapshot.
+	// KubeStash will not process any further event for the Snapshot.
 	// +optional
 	Paused bool `json:"paused,omitempty"`
 }
@@ -245,6 +245,9 @@ type VolumeSnapshotterStats struct {
 	// VolumeSnapshotName represents the name of created volumeSnapshot.
 	// +optional
 	VolumeSnapshotName string `json:"volumeSnapshotName,omitempty"`
+
+	// VolumeSnapshotTime indicates the timestamp at which the volumeSnapshot was created.
+	VolumeSnapshotTime *metav1.Time `json:"volumeSnapshotTime,omitempty"`
 }
 
 // WalSegment specifies the "WalG" driver specific information

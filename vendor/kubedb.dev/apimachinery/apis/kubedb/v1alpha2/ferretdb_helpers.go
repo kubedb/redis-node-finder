@@ -32,7 +32,6 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	appslister "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/klog/v2"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
@@ -42,6 +41,7 @@ import (
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
+	pslister "kubeops.dev/petset/client/listers/apps/v1"
 )
 
 func (f *FerretDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
@@ -97,8 +97,12 @@ func (f *FerretDB) OffshootLabels() map[string]string {
 	return f.offshootLabels(f.OffshootSelectors(), nil)
 }
 
+func (r *FerretDB) PetSetName() string {
+	return r.OffshootName()
+}
+
 func (f *FerretDB) offshootLabels(selector, override map[string]string) map[string]string {
-	selector[meta_util.ComponentLabelKey] = ComponentDatabase
+	selector[meta_util.ComponentLabelKey] = kubedb.ComponentDatabase
 	return meta_util.FilterKeys("kubedb.com", selector, meta_util.OverwriteKeys(nil, f.Labels, override))
 }
 
@@ -159,8 +163,8 @@ func (f *FerretDB) SetDefaults() {
 		f.Spec.StorageType = StorageTypeDurable
 	}
 
-	if f.Spec.TerminationPolicy == "" {
-		f.Spec.TerminationPolicy = TerminationPolicyWipeOut
+	if f.Spec.DeletionPolicy == "" {
+		f.Spec.DeletionPolicy = TerminationPolicyWipeOut
 	}
 
 	if f.Spec.SSLMode == "" {
@@ -183,15 +187,15 @@ func (f *FerretDB) SetDefaults() {
 		klog.Errorf("can't get the FerretDB version object %s for %s \n", err.Error(), f.Spec.Version)
 		return
 	}
-	dbContainer := coreutil.GetContainerByName(f.Spec.PodTemplate.Spec.Containers, FerretDBContainerName)
+	dbContainer := coreutil.GetContainerByName(f.Spec.PodTemplate.Spec.Containers, kubedb.FerretDBContainerName)
 	if dbContainer == nil {
 		dbContainer = &core.Container{
-			Name: FerretDBContainerName,
+			Name: kubedb.FerretDBContainerName,
 		}
 		f.Spec.PodTemplate.Spec.Containers = append(f.Spec.PodTemplate.Spec.Containers, *dbContainer)
 	}
 	if structs.IsZero(dbContainer.Resources) {
-		apis.SetDefaultResourceLimits(&dbContainer.Resources, DefaultResources)
+		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResources)
 	}
 	if dbContainer.SecurityContext == nil {
 		dbContainer.SecurityContext = &core.SecurityContext{}
@@ -222,9 +226,15 @@ func (f *FerretDB) SetDefaults() {
 	}
 
 	defaultVersion := "13.13"
-	if !f.Spec.Backend.ExternallyManaged && f.Spec.Backend.Postgres == nil {
-		f.Spec.Backend.Postgres = &PostgresRef{
-			Version: &defaultVersion,
+	if !f.Spec.Backend.ExternallyManaged {
+		if f.Spec.Backend.Postgres == nil {
+			f.Spec.Backend.Postgres = &PostgresRef{
+				Version: &defaultVersion,
+			}
+		} else {
+			if f.Spec.Backend.Postgres.Version == nil {
+				f.Spec.Backend.Postgres.Version = &defaultVersion
+			}
 		}
 	}
 	f.SetTLSDefaults()
@@ -271,7 +281,7 @@ func (f *FerretDB) SetTLSDefaults() {
 		return
 	}
 
-	defaultServerOrg := []string{KubeDBOrganization}
+	defaultServerOrg := []string{kubedb.KubeDBOrganization}
 	defaultServerOrgUnit := []string{string(FerretDBServerCert)}
 
 	_, cert := kmapi.GetCertificate(f.Spec.TLS.Certificates, string(FerretDBServerCert))
@@ -293,7 +303,7 @@ func (f *FerretDB) SetTLSDefaults() {
 	})
 
 	// Client-cert
-	defaultClientOrg := []string{KubeDBOrganization}
+	defaultClientOrg := []string{kubedb.KubeDBOrganization}
 	defaultClientOrgUnit := []string{string(FerretDBClientCert)}
 	_, cert = kmapi.GetCertificate(f.Spec.TLS.Certificates, string(FerretDBClientCert))
 	if cert != nil && cert.Subject != nil {
@@ -327,7 +337,7 @@ func (fs FerretDBStatsService) ServiceMonitorAdditionalLabels() map[string]strin
 }
 
 func (fs FerretDBStatsService) Path() string {
-	return FerretDBMetricsPath
+	return kubedb.FerretDBMetricsPath
 }
 
 func (fs FerretDBStatsService) Scheme() string {
@@ -352,11 +362,11 @@ func (f *FerretDB) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]s
 }
 
 func (f *FerretDB) StatsServiceLabels() map[string]string {
-	return f.ServiceLabels(StatsServiceAlias, map[string]string{LabelRole: RoleStats})
+	return f.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
-func (f *FerretDB) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, string, error) {
-	// Desire number of statefulSets
+func (f *FerretDB) ReplicasAreReady(lister pslister.PetSetLister) (bool, string, error) {
+	// Desire number of petSets
 	expectedItems := 1
-	return checkReplicas(lister.StatefulSets(f.Namespace), labels.SelectorFromSet(f.OffshootLabels()), expectedItems)
+	return checkReplicasOfPetSet(lister.PetSets(f.Namespace), labels.SelectorFromSet(f.OffshootLabels()), expectedItems)
 }

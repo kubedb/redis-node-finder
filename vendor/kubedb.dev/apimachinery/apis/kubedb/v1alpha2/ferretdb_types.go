@@ -89,9 +89,9 @@ type FerretDBSpec struct {
 	// Storage to specify how storage shall be used for KubeDB Backend.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database and KubeDB Backend
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
@@ -102,7 +102,7 @@ type FerretDBSpec struct {
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
 
-	Backend *Backend `json:"backend"`
+	Backend *FerretDBBackend `json:"backend"`
 }
 
 type FerretDBStatus struct {
@@ -116,17 +116,11 @@ type FerretDBStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=server;client;
-type FerretDBCertificateAlias string
-
-const (
-	FerretDBServerCert FerretDBCertificateAlias = "server"
-	FerretDBClientCert FerretDBCertificateAlias = "client"
-)
-
-type Backend struct {
+type FerretDBBackend struct {
 	// +optional
 	Postgres *PostgresRef `json:"postgres,omitempty"`
 	// A DB inside backend specifically made for ferretdb
@@ -148,13 +142,24 @@ type PostgresRef struct {
 }
 
 type PostgresServiceRef struct {
-	Name      *string `json:"name"`
-	Namespace *string `json:"namespace"`
+	// +optional
+	Name string `json:"name,omitempty"`
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 	// PgPort is used because the service referred to the
 	// pg pod can have any port between 1 and 65535, inclusive
 	// but targetPort is fixed to 5432
-	PgPort *string `json:"pgPort"`
+	// +optional
+	PgPort int32 `json:"pgPort,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=server;client
+type FerretDBCertificateAlias string
+
+const (
+	FerretDBServerCert FerretDBCertificateAlias = "server"
+	FerretDBClientCert FerretDBCertificateAlias = "client"
+)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

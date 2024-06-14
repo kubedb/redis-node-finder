@@ -137,14 +137,14 @@ type PostgresVerticalScalingSpec struct {
 // PostgresVolumeExpansionSpec is the spec for Postgres volume expansion
 type PostgresVolumeExpansionSpec struct {
 	// volume specification for Postgres
-	Postgres *resource.Quantity   `json:"postgres,omitempty"`
-	Arbiter  *resource.Quantity   `json:"arbiter,omitempty"`
-	Mode     *VolumeExpansionMode `json:"mode,omitempty"`
+	Postgres *resource.Quantity  `json:"postgres,omitempty"`
+	Arbiter  *resource.Quantity  `json:"arbiter,omitempty"`
+	Mode     VolumeExpansionMode `json:"mode"`
 }
 
 type PostgresCustomConfigurationSpec struct {
 	ConfigSecret       *core.LocalObjectReference `json:"configSecret,omitempty"`
-	InlineConfig       string                     `json:"inlineConfig,omitempty"`
+	ApplyConfig        map[string]string          `json:"applyConfig,omitempty"`
 	RemoveCustomConfig bool                       `json:"removeCustomConfig,omitempty"`
 }
 

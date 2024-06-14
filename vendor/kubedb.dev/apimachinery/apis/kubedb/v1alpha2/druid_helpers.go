@@ -22,23 +22,29 @@ import (
 	"strconv"
 	"strings"
 
+	"kubedb.dev/apimachinery/apis"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	"github.com/Masterminds/semver/v3"
+	promapi "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gomodules.xyz/pointer"
+	core "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	appslister "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/klog/v2"
 	"kmodules.xyz/client-go/apiextensions"
 	coreutil "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
+	pslister "kubeops.dev/petset/client/listers/apps/v1"
 )
 
 func (d *Druid) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
@@ -103,7 +109,7 @@ func (d *Druid) OffShootSelectors(extraSelectors ...map[string]string) map[strin
 }
 
 func (d *Druid) offShootLabels(selector, override map[string]string) map[string]string {
-	selector[meta_util.ComponentLabelKey] = ComponentDatabase
+	selector[meta_util.ComponentLabelKey] = kubedb.ComponentDatabase
 	return meta_util.FilterKeys(kubedb.GroupName, selector, meta_util.OverwriteKeys(nil, d.Labels, override))
 }
 
@@ -116,24 +122,100 @@ func (d *Druid) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]stri
 	return d.offShootLabels(meta_util.OverwriteKeys(d.OffShootSelectors(), extraLabels...), svcTemplate.Labels)
 }
 
+func (r *Druid) Finalizer() string {
+	return fmt.Sprintf("%s/%s", apis.Finalizer, r.ResourceSingular())
+}
+
 func (d *Druid) DefaultUserCredSecretName(username string) string {
 	return meta_util.NameWithSuffix(d.Name, strings.ReplaceAll(fmt.Sprintf("%s-cred", username), "_", "-"))
+}
+
+type DruidStatsService struct {
+	*Druid
+}
+
+func (ks DruidStatsService) TLSConfig() *promapi.TLSConfig {
+	return nil
+}
+
+func (ks DruidStatsService) GetNamespace() string {
+	return ks.Druid.GetNamespace()
+}
+
+func (ks DruidStatsService) ServiceName() string {
+	return ks.OffShootName() + "-stats"
+}
+
+func (ks DruidStatsService) ServiceMonitorName() string {
+	return ks.ServiceName()
+}
+
+func (ks DruidStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return ks.OffshootLabels()
+}
+
+func (ks DruidStatsService) Path() string {
+	return kubedb.DefaultStatsPath
+}
+
+func (ks DruidStatsService) Scheme() string {
+	return ""
+}
+
+func (d *Druid) StatsService() mona.StatsAccessor {
+	return &DruidStatsService{d}
+}
+
+func (d *Druid) StatsServiceLabels() map[string]string {
+	return d.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
 func (d *Druid) ConfigSecretName() string {
 	return meta_util.NameWithSuffix(d.OffShootName(), "config")
 }
 
-func (d *Druid) StatefulSetName(nodeRole DruidNodeRoleType) string {
+func (d *Druid) PetSetName(nodeRole DruidNodeRoleType) string {
 	return meta_util.NameWithSuffix(d.OffShootName(), d.DruidNodeRoleString(nodeRole))
 }
 
-func (d *Druid) PodLabels(extraLebels ...map[string]string) map[string]string {
-	return d.offShootLabels(meta_util.OverwriteKeys(d.OffShootSelectors(), extraLebels...), d.Spec.PodTemplate.Labels)
+func (d *Druid) PodLabels(nodeType DruidNodeRoleType, extraLabels ...map[string]string) map[string]string {
+	nodeSpec, dataNodeSpec := d.GetNodeSpec(nodeType)
+	var labels map[string]string
+	if nodeSpec != nil {
+		labels = nodeSpec.PodTemplate.Labels
+	} else {
+		labels = dataNodeSpec.PodTemplate.Labels
+	}
+	return d.offShootLabels(meta_util.OverwriteKeys(d.OffShootSelectors(), extraLabels...), labels)
 }
 
-func (d *Druid) PodControllerLabels(extraLabels ...map[string]string) map[string]string {
-	return d.offShootLabels(meta_util.OverwriteKeys(d.OffShootSelectors(), extraLabels...), d.Spec.PodTemplate.Controller.Labels)
+func (d *Druid) PodControllerLabels(nodeType DruidNodeRoleType, extraLabels ...map[string]string) map[string]string {
+	nodeSpec, dataNodeSpec := d.GetNodeSpec(nodeType)
+	var labels map[string]string
+	if nodeSpec != nil {
+		labels = nodeSpec.PodTemplate.Controller.Labels
+	} else {
+		labels = dataNodeSpec.PodTemplate.Controller.Labels
+	}
+	return d.offShootLabels(meta_util.OverwriteKeys(d.OffShootSelectors(), extraLabels...), labels)
+}
+
+func (d *Druid) GetNodeSpec(nodeType DruidNodeRoleType) (*DruidNode, *DruidDataNode) {
+	if nodeType == DruidNodeRoleCoordinators {
+		return d.Spec.Topology.Coordinators, nil
+	} else if nodeType == DruidNodeRoleOverlords {
+		return d.Spec.Topology.Overlords, nil
+	} else if nodeType == DruidNodeRoleMiddleManagers {
+		return nil, d.Spec.Topology.MiddleManagers
+	} else if nodeType == DruidNodeRoleHistoricals {
+		return nil, d.Spec.Topology.Historicals
+	} else if nodeType == DruidNodeRoleBrokers {
+		return d.Spec.Topology.Brokers, nil
+	} else if nodeType == DruidNodeRoleRouters {
+		return d.Spec.Topology.Routers, nil
+	}
+
+	panic("Node role name does not match any known types")
 }
 
 func (d *Druid) ServiceAccountName() string {
@@ -151,18 +233,18 @@ func (d *Druid) DruidNodeRoleStringSingular(nodeRole DruidNodeRoleType) string {
 
 func (d *Druid) DruidNodeContainerPort(nodeRole DruidNodeRoleType) int32 {
 	if nodeRole == DruidNodeRoleCoordinators {
-		return 8081
+		return kubedb.DruidPortCoordinators
 	} else if nodeRole == DruidNodeRoleOverlords {
-		return 8090
+		return kubedb.DruidPortOverlords
 	} else if nodeRole == DruidNodeRoleMiddleManagers {
-		return 8091
+		return kubedb.DruidPortMiddleManagers
 	} else if nodeRole == DruidNodeRoleHistoricals {
-		return 8083
+		return kubedb.DruidPortHistoricals
 	} else if nodeRole == DruidNodeRoleBrokers {
-		return 8082
+		return kubedb.DruidPortBrokers
 	}
 	// Routers
-	return 8888
+	return kubedb.DruidPortRouters
 }
 
 func (d *Druid) SetHealthCheckerDefaults() {
@@ -205,10 +287,10 @@ func (d *Druid) GetMetadataStorageConnectURI(appbinding *appcat.AppBinding, meta
 	var url string
 	if metadataStorageType == DruidMetadataStorageMySQL {
 		url = *appbinding.Spec.ClientConfig.URL
-		url = DruidMetadataStorageConnectURIPrefixMySQL + url[4:len(url)-2] + "/" + ResourceSingularDruid
+		url = kubedb.DruidMetadataStorageConnectURIPrefixMySQL + url[4:len(url)-2] + "/" + ResourceSingularDruid
 	} else if metadataStorageType == DruidMetadataStoragePostgreSQL {
 		url = appbinding.Spec.ClientConfig.Service.Name + ":" + strconv.Itoa(int(appbinding.Spec.ClientConfig.Service.Port))
-		url = DruidMetadataStorageConnectURIPrefixPostgreSQL + url + "/" + ResourceSingularDruid
+		url = kubedb.DruidMetadataStorageConnectURIPrefixPostgreSQL + url + "/" + ResourceSingularDruid
 	}
 	return url
 }
@@ -251,7 +333,7 @@ func (d *Druid) GetDruidSegmentCacheConfig() string {
 		storageSize = "1g"
 	}
 
-	segmentCache := fmt.Sprintf("[{\"path\":\"%s\",\"maxSize\":\"%s\"}]", DruidHistoricalsSegmentCacheDir, storageSize)
+	segmentCache := fmt.Sprintf("[{\"path\":\"%s\",\"maxSize\":\"%s\"}]", kubedb.DruidHistoricalsSegmentCacheDir, storageSize)
 	return segmentCache
 }
 
@@ -282,17 +364,13 @@ func (d Druid) OffshootLabels() map[string]string {
 }
 
 func (e Druid) offshootLabels(selector, override map[string]string) map[string]string {
-	selector[meta_util.ComponentLabelKey] = ComponentDatabase
+	selector[meta_util.ComponentLabelKey] = kubedb.ComponentDatabase
 	return meta_util.FilterKeys(kubedb.GroupName, selector, meta_util.OverwriteKeys(nil, e.Labels, override))
 }
 
 func (d *Druid) SetDefaults() {
-	if d.Spec.TerminationPolicy == "" {
-		d.Spec.TerminationPolicy = TerminationPolicyDelete
-	}
-
-	if d.Spec.StorageType == "" {
-		d.Spec.StorageType = StorageTypeDurable
+	if d.Spec.DeletionPolicy == "" {
+		d.Spec.DeletionPolicy = TerminationPolicyDelete
 	}
 
 	if d.Spec.DisableSecurity == nil {
@@ -302,7 +380,7 @@ func (d *Druid) SetDefaults() {
 	if !*d.Spec.DisableSecurity {
 		if d.Spec.AuthSecret == nil {
 			d.Spec.AuthSecret = &v1.LocalObjectReference{
-				Name: d.DefaultUserCredSecretName(DruidUserAdmin),
+				Name: d.DefaultUserCredSecretName(kubedb.DruidUserAdmin),
 			}
 		}
 	}
@@ -316,94 +394,147 @@ func (d *Druid) SetDefaults() {
 		return
 	}
 
+	version, err := semver.NewVersion(druidVersion.Spec.Version)
+	if err != nil {
+		klog.Errorf("failed to parse druid version :%s\n", err.Error())
+		return
+	}
+
 	if d.Spec.Topology != nil {
+		if d.Spec.Topology.Coordinators == nil {
+			d.Spec.Topology.Coordinators = &DruidNode{}
+		}
 		if d.Spec.Topology.Coordinators != nil {
 			if d.Spec.Topology.Coordinators.Replicas == nil {
 				d.Spec.Topology.Coordinators.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.Coordinators.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.Coordinators.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if version.Major() > 25 {
+				if d.Spec.Topology.Coordinators.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.Coordinators.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Coordinators.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.Coordinators.PodTemplate, DruidNodeRoleCoordinators)
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Coordinators.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.Coordinators.PodTemplate)
 		}
+
 		if d.Spec.Topology.Overlords != nil {
 			if d.Spec.Topology.Overlords.Replicas == nil {
 				d.Spec.Topology.Overlords.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.Overlords.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.Overlords.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if version.Major() > 25 {
+				if d.Spec.Topology.Overlords.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.Overlords.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Overlords.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.Overlords.PodTemplate, DruidNodeRoleOverlords)
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Overlords.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.Overlords.PodTemplate)
+		}
+
+		if d.Spec.Topology.MiddleManagers == nil {
+			d.Spec.Topology.MiddleManagers = &DruidDataNode{}
 		}
 		if d.Spec.Topology.MiddleManagers != nil {
 			if d.Spec.Topology.MiddleManagers.Replicas == nil {
 				d.Spec.Topology.MiddleManagers.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.MiddleManagers.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.MiddleManagers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if d.Spec.Topology.MiddleManagers.StorageType == "" {
+				d.Spec.Topology.MiddleManagers.StorageType = StorageTypeDurable
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.MiddleManagers.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.MiddleManagers.PodTemplate)
+			if d.Spec.Topology.MiddleManagers.Storage == nil && d.Spec.Topology.MiddleManagers.StorageType == StorageTypeDurable {
+				d.Spec.Topology.MiddleManagers.Storage = d.getDefaultPVC()
+			}
+			if version.Major() > 25 {
+				if d.Spec.Topology.MiddleManagers.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.MiddleManagers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.MiddleManagers.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.MiddleManagers.PodTemplate, DruidNodeRoleMiddleManagers)
+			}
+		}
+
+		if d.Spec.Topology.Historicals == nil {
+			d.Spec.Topology.Historicals = &DruidDataNode{}
 		}
 		if d.Spec.Topology.Historicals != nil {
 			if d.Spec.Topology.Historicals.Replicas == nil {
 				d.Spec.Topology.Historicals.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.Historicals.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.Historicals.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if d.Spec.Topology.Historicals.StorageType == "" {
+				d.Spec.Topology.Historicals.StorageType = StorageTypeDurable
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Historicals.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.Historicals.PodTemplate)
+			if d.Spec.Topology.Historicals.Storage == nil && d.Spec.Topology.Historicals.StorageType == StorageTypeDurable {
+				d.Spec.Topology.Historicals.Storage = d.getDefaultPVC()
+			}
+			if version.Major() > 25 {
+				if d.Spec.Topology.Historicals.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.Historicals.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Historicals.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.Historicals.PodTemplate, DruidNodeRoleHistoricals)
+			}
+		}
+
+		if d.Spec.Topology.Brokers == nil {
+			d.Spec.Topology.Brokers = &DruidNode{}
 		}
 		if d.Spec.Topology.Brokers != nil {
 			if d.Spec.Topology.Brokers.Replicas == nil {
 				d.Spec.Topology.Brokers.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.Brokers.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.Brokers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if version.Major() > 25 {
+				if d.Spec.Topology.Brokers.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.Brokers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Brokers.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.Brokers.PodTemplate, DruidNodeRoleBrokers)
+
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Brokers.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.Brokers.PodTemplate)
 		}
+
 		if d.Spec.Topology.Routers != nil {
 			if d.Spec.Topology.Routers.Replicas == nil {
 				d.Spec.Topology.Routers.Replicas = pointer.Int32P(1)
 			}
-			if d.Spec.Topology.Routers.PodTemplate.Spec.SecurityContext == nil {
-				d.Spec.Topology.Routers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+			if version.Major() > 25 {
+				if d.Spec.Topology.Routers.PodTemplate.Spec.SecurityContext == nil {
+					d.Spec.Topology.Routers.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: druidVersion.Spec.SecurityContext.RunAsUser}
+				}
+				d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Routers.PodTemplate)
+				d.setDefaultContainerResourceLimits(&d.Spec.Topology.Routers.PodTemplate, DruidNodeRoleRouters)
 			}
-			d.setDefaultContainerSecurityContext(&druidVersion, &d.Spec.Topology.Routers.PodTemplate)
-			d.setDefaultInitContainerSecurityContext(&druidVersion, &d.Spec.Topology.Routers.PodTemplate)
 		}
 	}
 	if d.Spec.MetadataStorage != nil {
-		if d.Spec.MetadataStorage.Name != nil && d.Spec.MetadataStorage.Namespace == nil {
-			*d.Spec.MetadataStorage.Namespace = d.Namespace
+		if d.Spec.MetadataStorage.Name != "" && d.Spec.MetadataStorage.Namespace == "" {
+			d.Spec.MetadataStorage.Namespace = d.Namespace
 		}
+	}
+	if d.Spec.Monitor != nil {
+		if d.Spec.Monitor.Prometheus == nil {
+			d.Spec.Monitor.Prometheus = &mona.PrometheusSpec{}
+		}
+		if d.Spec.Monitor.Prometheus != nil && d.Spec.Monitor.Prometheus.Exporter.Port == 0 {
+			d.Spec.Monitor.Prometheus.Exporter.Port = kubedb.DruidExporterPort
+		}
+		d.Spec.Monitor.SetDefaults()
 	}
 }
 
-func (d *Druid) setDefaultInitContainerSecurityContext(druidVersion *catalog.DruidVersion, podTemplate *ofst.PodTemplateSpec) {
-	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, DruidInitContainer)
-	if initContainer == nil {
-		initContainer = &v1.Container{
-			Name: DruidInitContainer,
-		}
+func (d *Druid) getDefaultPVC() *core.PersistentVolumeClaimSpec {
+	return &core.PersistentVolumeClaimSpec{
+		Resources: core.VolumeResourceRequirements{
+			Requests: core.ResourceList{
+				core.ResourceStorage: resource.MustParse("1Gi"),
+			},
+		},
 	}
-	if initContainer.SecurityContext == nil {
-		initContainer.SecurityContext = &v1.SecurityContext{}
-	}
-	d.assignDefaultContainerSecurityContext(druidVersion, initContainer.SecurityContext)
-	podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 }
 
 func (d *Druid) setDefaultContainerSecurityContext(druidVersion *catalog.DruidVersion, podTemplate *ofst.PodTemplateSpec) {
-	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, DruidMainContainer)
+	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.DruidContainerName)
 	if container == nil {
 		container = &v1.Container{
-			Name: DruidMainContainer,
+			Name: kubedb.DruidContainerName,
 		}
 	}
 	if container.SecurityContext == nil {
@@ -411,6 +542,18 @@ func (d *Druid) setDefaultContainerSecurityContext(druidVersion *catalog.DruidVe
 	}
 	d.assignDefaultContainerSecurityContext(druidVersion, container.SecurityContext)
 	podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *container)
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.DruidInitContainerName)
+	if initContainer == nil {
+		initContainer = &v1.Container{
+			Name: kubedb.DruidInitContainerName,
+		}
+	}
+	if initContainer.SecurityContext == nil {
+		initContainer.SecurityContext = &v1.SecurityContext{}
+	}
+	d.assignDefaultContainerSecurityContext(druidVersion, initContainer.SecurityContext)
+	podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 }
 
 func (d *Druid) assignDefaultContainerSecurityContext(druidVersion *catalog.DruidVersion, sc *v1.SecurityContext) {
@@ -433,6 +576,22 @@ func (d *Druid) assignDefaultContainerSecurityContext(druidVersion *catalog.Drui
 	}
 }
 
+func (d *Druid) setDefaultContainerResourceLimits(podTemplate *ofst.PodTemplateSpec, nodeRole DruidNodeRoleType) {
+	dbContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.DruidContainerName)
+	if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
+		if nodeRole == DruidNodeRoleMiddleManagers {
+			apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResourcesMemoryIntensiveDruid)
+		} else {
+			apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResources)
+		}
+	}
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.DruidInitContainerName)
+	if initContainer != nil && (initContainer.Resources.Requests == nil && initContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&initContainer.Resources, kubedb.DefaultInitContainerResource)
+	}
+}
+
 func (d *Druid) GetPersistentSecrets() []string {
 	if d == nil {
 		return nil
@@ -445,8 +604,8 @@ func (d *Druid) GetPersistentSecrets() []string {
 	return secrets
 }
 
-func (d *Druid) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, string, error) {
-	// Desire number of statefulSets
+func (d *Druid) ReplicasAreReady(lister pslister.PetSetLister) (bool, string, error) {
+	// Desire number of petSets
 	expectedItems := 1
 	if d.Spec.Topology != nil {
 		expectedItems = 4
@@ -457,5 +616,5 @@ func (d *Druid) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, str
 	if d.Spec.Topology.Overlords != nil {
 		expectedItems++
 	}
-	return checkReplicas(lister.StatefulSets(d.Namespace), labels.SelectorFromSet(d.OffshootLabels()), expectedItems)
+	return checkReplicasOfPetSet(lister.PetSets(d.Namespace), labels.SelectorFromSet(d.OffshootLabels()), expectedItems)
 }

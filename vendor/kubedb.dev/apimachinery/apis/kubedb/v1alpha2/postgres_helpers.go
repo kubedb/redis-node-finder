@@ -26,6 +26,8 @@ import (
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
 	promapi "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
@@ -83,7 +85,7 @@ func (p Postgres) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]st
 }
 
 func (p Postgres) offshootLabels(selector, override map[string]string) map[string]string {
-	selector[meta_util.ComponentLabelKey] = ComponentDatabase
+	selector[meta_util.ComponentLabelKey] = kubedb.ComponentDatabase
 	return meta_util.FilterKeys(kubedb.GroupName, selector, meta_util.OverwriteKeys(nil, p.Labels, override))
 }
 
@@ -163,7 +165,7 @@ func (p postgresStatsService) ServiceMonitorAdditionalLabels() map[string]string
 }
 
 func (p postgresStatsService) Path() string {
-	return DefaultStatsPath
+	return kubedb.DefaultStatsPath
 }
 
 func (p postgresStatsService) Scheme() string {
@@ -179,7 +181,7 @@ func (p Postgres) StatsService() mona.StatsAccessor {
 }
 
 func (p Postgres) StatsServiceLabels() map[string]string {
-	return p.ServiceLabels(StatsServiceAlias, map[string]string{LabelRole: RoleStats})
+	return p.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
 func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topology *core_util.Topology) {
@@ -219,7 +221,7 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 	if p.Spec.LeaderElection.TransferLeadershipTimeout == nil {
 		p.Spec.LeaderElection.TransferLeadershipTimeout = &metav1.Duration{Duration: 60 * time.Second}
 	}
-	apis.SetDefaultResourceLimits(&p.Spec.Coordinator.Resources, CoordinatorDefaultResources)
+	apis.SetDefaultResourceLimits(&p.Spec.Coordinator.Resources, kubedb.CoordinatorDefaultResources)
 
 	if p.Spec.PodTemplate.Spec.ServiceAccountName == "" {
 		p.Spec.PodTemplate.Spec.ServiceAccountName = p.OffshootName()
@@ -261,10 +263,11 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 	// So that /var/pv directory have the group permission for the RunAsGroup user GID.
 	// Otherwise, We will get write permission denied.
 	p.Spec.PodTemplate.Spec.SecurityContext.FSGroup = p.Spec.PodTemplate.Spec.ContainerSecurityContext.RunAsGroup
+	p.SetDefaultReplicationMode(postgresVersion)
 	p.SetArbiterDefault()
 	p.SetTLSDefaults()
 	p.SetHealthCheckerDefaults()
-	apis.SetDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, DefaultResources)
+	apis.SetDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, kubedb.DefaultResources)
 	p.setDefaultAffinity(&p.Spec.PodTemplate, p.OffshootSelectors(), topology)
 
 	p.Spec.Monitor.SetDefaults()
@@ -278,34 +281,58 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 	}
 }
 
+func getMajorPgVersion(postgresVersion *catalog.PostgresVersion) (uint64, error) {
+	ver, err := semver.NewVersion(postgresVersion.Spec.Version)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to get postgres major.")
+	}
+	return ver.Major(), nil
+}
+
+// SetDefaultReplicationMode set the default replication mode.
+// Replication slot will be prioritized if no WalLimitPolicy is mentioned
+func (p *Postgres) SetDefaultReplicationMode(postgresVersion *catalog.PostgresVersion) {
+	majorVersion, _ := getMajorPgVersion(postgresVersion)
+	if p.Spec.Replication == nil {
+		p.Spec.Replication = &PostgresReplication{}
+	}
+	if p.Spec.Replication.WALLimitPolicy == "" {
+		if majorVersion <= uint64(12) {
+			p.Spec.Replication.WALLimitPolicy = WALKeepSegment
+		} else {
+			p.Spec.Replication.WALLimitPolicy = WALKeepSize
+		}
+	}
+	if p.Spec.Replication.WALLimitPolicy == WALKeepSegment && p.Spec.Replication.WalKeepSegment == nil {
+		p.Spec.Replication.WalKeepSegment = pointer.Int32P(64)
+	}
+	if p.Spec.Replication.WALLimitPolicy == WALKeepSize && p.Spec.Replication.WalKeepSizeInMegaBytes == nil {
+		p.Spec.Replication.WalKeepSizeInMegaBytes = pointer.Int32P(1024)
+	}
+	if p.Spec.Replication.WALLimitPolicy == ReplicationSlot && p.Spec.Replication.MaxSlotWALKeepSizeInMegaBytes == nil {
+		p.Spec.Replication.MaxSlotWALKeepSizeInMegaBytes = pointer.Int32P(-1)
+	}
+}
+
 func (p *Postgres) SetArbiterDefault() {
 	if p.Spec.Arbiter == nil {
 		p.Spec.Arbiter = &ArbiterSpec{
 			Resources: core.ResourceRequirements{},
 		}
 	}
-	apis.SetDefaultResourceLimits(&p.Spec.Arbiter.Resources, DefaultArbiter(false))
+	apis.SetDefaultResourceLimits(&p.Spec.Arbiter.Resources, kubedb.DefaultArbiter(false))
 }
 
 func (p *Postgres) setDefaultInitContainerSecurityContext(podTemplate *ofst.PodTemplateSpec, pgVersion *catalog.PostgresVersion) {
 	if podTemplate == nil {
 		return
 	}
-	container := core_util.GetContainerByName(p.Spec.PodTemplate.Spec.InitContainers, PostgresInitContainerName)
+	container := core_util.GetContainerByName(p.Spec.PodTemplate.Spec.InitContainers, kubedb.PostgresInitContainerName)
 	if container == nil {
 		container = &core.Container{
-			Name:            PostgresInitContainerName,
+			Name:            kubedb.PostgresInitContainerName,
 			SecurityContext: &core.SecurityContext{},
-			Resources: core.ResourceRequirements{
-				Limits: core.ResourceList{
-					core.ResourceCPU:    resource.MustParse(".200"),
-					core.ResourceMemory: resource.MustParse("128Mi"),
-				},
-				Requests: core.ResourceList{
-					core.ResourceCPU:    resource.MustParse(".200"),
-					core.ResourceMemory: resource.MustParse("128Mi"),
-				},
-			},
+			Resources:       kubedb.DefaultInitContainerResource,
 		}
 	} else if container.SecurityContext == nil {
 		container.SecurityContext = &core.SecurityContext{}
@@ -337,36 +364,7 @@ func (p *Postgres) setDefaultContainerSecurityContext(podTemplate *ofst.PodTempl
 	if podTemplate.Spec.SecurityContext.FSGroup == nil {
 		podTemplate.Spec.SecurityContext.FSGroup = pgVersion.Spec.SecurityContext.RunAsUser
 	}
-	p.setDefaultCapabilitiesForPostgres(podTemplate.Spec.ContainerSecurityContext)
 	p.assignDefaultContainerSecurityContext(podTemplate.Spec.ContainerSecurityContext, pgVersion)
-}
-
-func (p *Postgres) setDefaultCapabilitiesForPostgres(sc *core.SecurityContext) {
-	if sc.Capabilities == nil {
-		sc.Capabilities = &core.Capabilities{
-			Add: []core.Capability{IPS_LOCK, SYS_RESOURCE},
-		}
-	} else {
-		newCapabilities := &core.Capabilities{}
-		caps := []core.Capability{IPS_LOCK, SYS_RESOURCE}
-		if sc.Capabilities.Add == nil {
-			newCapabilities.Add = caps
-		} else {
-			newCapabilities.Add = sc.Capabilities.Add
-			for i := range caps {
-				found := false
-				for _, capability := range sc.Capabilities.Add {
-					if caps[i] == capability {
-						found = true
-					}
-				}
-				if !found {
-					newCapabilities.Add = append(newCapabilities.Add, caps[i])
-				}
-			}
-		}
-		sc.Capabilities = newCapabilities
-	}
 }
 
 func (p *Postgres) assignDefaultContainerSecurityContext(sc *core.SecurityContext, pgVersion *catalog.PostgresVersion) {
@@ -374,7 +372,9 @@ func (p *Postgres) assignDefaultContainerSecurityContext(sc *core.SecurityContex
 		sc.AllowPrivilegeEscalation = pointer.BoolP(false)
 	}
 	if sc.Capabilities == nil {
-		sc.Capabilities = &core.Capabilities{}
+		sc.Capabilities = &core.Capabilities{
+			Drop: []core.Capability{"ALL"},
+		}
 	}
 	if sc.RunAsNonRoot == nil {
 		sc.RunAsNonRoot = pointer.BoolP(true)
@@ -494,9 +494,9 @@ func GetSharedBufferSizeForPostgres(resource *resource.Quantity) string {
 	// It's going to through and error that the value is going to cross the limit.
 
 	sharedBuffer := fmt.Sprintf("%skB", strconv.FormatInt(ret, 10))
-	if ret > SharedBuffersGbAsKiloByte {
+	if ret > kubedb.SharedBuffersGbAsKiloByte {
 		// convert the ret as MB devide by SharedBuffersMbAsByte
-		ret /= SharedBuffersMbAsKiloByte
+		ret /= kubedb.SharedBuffersMbAsKiloByte
 		sharedBuffer = fmt.Sprintf("%sMB", strconv.FormatInt(ret, 10))
 	}
 

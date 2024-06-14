@@ -104,13 +104,13 @@ type KafkaSpec struct {
 	// +optional
 	ServiceTemplates []NamedServiceTemplateSpec `json:"serviceTemplates,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
-	// +kubebuilder:default={periodSeconds: 20, timeoutSeconds: 10, failureThreshold: 3}
+	// +kubebuilder:default={periodSeconds: 10, timeoutSeconds: 10, failureThreshold: 3}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
 
 	// CruiseControl is used to re-balance Kafka cluster
@@ -170,6 +170,8 @@ type KafkaStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 type KafkaCruiseControl struct {

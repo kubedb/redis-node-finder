@@ -146,13 +146,12 @@ type MongoDBVerticalScalingSpec struct {
 
 // MongoDBVolumeExpansionSpec is the spec for mongodb volume expansion
 type MongoDBVolumeExpansionSpec struct {
-	// +kubebuilder:default="Online"
-	Mode         *VolumeExpansionMode `json:"mode,omitempty"`
-	Standalone   *resource.Quantity   `json:"standalone,omitempty"`
-	ReplicaSet   *resource.Quantity   `json:"replicaSet,omitempty"`
-	ConfigServer *resource.Quantity   `json:"configServer,omitempty"`
-	Shard        *resource.Quantity   `json:"shard,omitempty"`
-	Hidden       *resource.Quantity   `json:"hidden,omitempty"`
+	Mode         VolumeExpansionMode `json:"mode"`
+	Standalone   *resource.Quantity  `json:"standalone,omitempty"`
+	ReplicaSet   *resource.Quantity  `json:"replicaSet,omitempty"`
+	ConfigServer *resource.Quantity  `json:"configServer,omitempty"`
+	Shard        *resource.Quantity  `json:"shard,omitempty"`
+	Hidden       *resource.Quantity  `json:"hidden,omitempty"`
 }
 
 type MongoDBCustomConfigurationSpec struct {
@@ -166,12 +165,9 @@ type MongoDBCustomConfigurationSpec struct {
 }
 
 type MongoDBCustomConfiguration struct {
-	ConfigSecret *core.LocalObjectReference `json:"configSecret,omitempty"`
-	// Deprecated
-	InlineConfig string `json:"inlineConfig,omitempty"`
-
-	ApplyConfig        map[string]string `json:"applyConfig,omitempty"`
-	RemoveCustomConfig bool              `json:"removeCustomConfig,omitempty"`
+	ConfigSecret       *core.LocalObjectReference `json:"configSecret,omitempty"`
+	ApplyConfig        map[string]string          `json:"applyConfig,omitempty"`
+	RemoveCustomConfig bool                       `json:"removeCustomConfig,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

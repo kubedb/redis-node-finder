@@ -20,7 +20,8 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
-	ofst "kmodules.xyz/offshoot-api/api/v1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
+	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
 const (
@@ -60,6 +61,10 @@ type ZooKeeperSpec struct {
 	// +optional
 	Replicas *int32 `json:"replicas"`
 
+	// +optional
+	// +kubebuilder:default=8080
+	AdminServerPort int32 `json:"adminServerPort"`
+
 	// Storage to specify how storage shall be used.
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 
@@ -84,9 +89,9 @@ type ZooKeeperSpec struct {
 	// +optional
 	ServiceTemplates []NamedServiceTemplateSpec `json:"serviceTemplates,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
 	// +optional
@@ -96,6 +101,10 @@ type ZooKeeperSpec struct {
 	// +optional
 	// +kubebuilder:default={periodSeconds: 20, timeoutSeconds: 10, failureThreshold: 3}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
+
+	// Monitor is used monitor database instance
+	// +optional
+	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
 }
 
 // ZooKeeperStatus defines the observed state of ZooKeeper
@@ -110,6 +119,8 @@ type ZooKeeperStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

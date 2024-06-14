@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	"kubedb.dev/apimachinery/apis/kubedb"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -90,7 +91,7 @@ func (s *Solr) ValidateDelete() (admission.Warnings, error) {
 	solrlog.Info("validate delete", "name", s.Name)
 
 	var allErr field.ErrorList
-	if s.Spec.TerminationPolicy == TerminationPolicyDoNotTerminate {
+	if s.Spec.DeletionPolicy == TerminationPolicyDoNotTerminate {
 		allErr = append(allErr, field.Invalid(field.NewPath("spec").Child("terminationPolicy"),
 			s.Name,
 			"Can not delete as terminationPolicy is set to \"DoNotTerminate\""))
@@ -100,18 +101,18 @@ func (s *Solr) ValidateDelete() (admission.Warnings, error) {
 }
 
 var solrReservedVolumes = []string{
-	SolrVolumeConfig,
-	SolrVolumeDefaultConfig,
-	SolrVolumeCustomConfig,
-	SolrVolumeAuthConfig,
+	kubedb.SolrVolumeConfig,
+	kubedb.SolrVolumeDefaultConfig,
+	kubedb.SolrVolumeCustomConfig,
+	kubedb.SolrVolumeAuthConfig,
 }
 
 var solrReservedVolumeMountPaths = []string{
-	SolrHomeDir,
-	SolrDataDir,
-	SolrCustomConfigDir,
-	SolrSecurityConfigDir,
-	SolrTempConfigDir,
+	kubedb.SolrHomeDir,
+	kubedb.SolrDataDir,
+	kubedb.SolrCustomConfigDir,
+	kubedb.SolrSecurityConfigDir,
+	kubedb.SolrTempConfigDir,
 }
 
 var solrAvailableModules = []string{

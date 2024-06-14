@@ -20,6 +20,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
@@ -44,14 +45,8 @@ type Solr struct {
 	Status SolrStatus `json:"status,omitempty"`
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // SolrSpec defines the desired state of Solr c
 type SolrSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Version of Solr to be deployed
 	Version string `json:"version"`
 
@@ -69,7 +64,8 @@ type SolrSpec struct {
 	// Storage to specify how storage shall be used
 	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 
-	ZookeeperRef *core.LocalObjectReference `json:"zookeeperRef"`
+	// 	// ZooKeeper contains information for Solr to store configurations for collections
+	ZookeeperRef *kmapi.ObjectReference `json:"zookeeperRef,omitempty"`
 
 	// +optional
 	SolrModules []string `json:"solrModules,omitempty"`
@@ -96,6 +92,12 @@ type SolrSpec struct {
 	AuthSecret *core.LocalObjectReference `json:"authSecret,omitempty"`
 
 	// +optional
+	ZookeeperDigestSecret *core.LocalObjectReference `json:"zookeeperDigestSecret,omitempty"`
+
+	// +optional
+	ZookeeperDigestReadonlySecret *core.LocalObjectReference `json:"zookeeperDigestReadonlySecret,omitempty"`
+
+	// +optional
 	AuthConfigSecret *core.LocalObjectReference `json:"authConfigSecret,omitempty"`
 
 	// PodTemplate is an optional configuration for pods used to expose database
@@ -106,14 +108,18 @@ type SolrSpec struct {
 	// +optional
 	ServiceTemplates []NamedServiceTemplateSpec `json:"serviceTemplates,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
 	// +kubebuilder:default={periodSeconds: 20, timeoutSeconds: 10, failureThreshold: 3}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
+
+	// Monitor is used monitor database instance
+	// +optional
+	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
 }
 
 type SolrClusterTopology struct {
@@ -138,23 +144,10 @@ type SolrNode struct {
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
 	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
-
-	// NodeSelector is a selector which must be true for the pod to fit on a node.
-	// Selector which must match a node's labels for the pod to be scheduled on that node.
-	// More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-	// +optional
-	// +mapType=atomic
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// If specified, the pod's tolerations.
-	// +optional
-	Tolerations []core.Toleration `json:"tolerations,omitempty"`
 }
 
 // SolrStatus defines the observed state of Solr
 type SolrStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Specifies the current phase of the database
 	// +optional
 	Phase DatabasePhase `json:"phase,omitempty"`
@@ -165,6 +158,8 @@ type SolrStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=overseer;data;coordinator;combined

@@ -20,6 +20,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
@@ -53,25 +54,12 @@ type Druid struct {
 
 // DruidSpec defines the desired state of Druid
 type DruidSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Version of Druid to be deployed.
 	Version string `json:"version"`
 
 	// Druid topology for node specification
 	// +optional
 	Topology *DruidClusterTopology `json:"topology,omitempty"`
-
-	// StorageType can be durable (default) or ephemeral.
-	StorageType StorageType `json:"storageType,omitempty"`
-
-	// Storage to specify how storage shall be used.
-	// Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
-
-	// To enable ssl for http layer.
-	// +optional
-	// EnableSSL bool `json:"enableSSL,omitempty"`
 
 	// disable security. It disables authentication security of user.
 	// If unset, default is false
@@ -99,11 +87,7 @@ type DruidSpec struct {
 
 	// ZooKeeper contains information for Druid to connect to external dependency metadata storage
 	// +optional
-	ZooKeeper *ZooKeeperRef `json:"zooKeeper,omitempty"`
-
-	// PodTemplate is an optional configuration
-	// +optional
-	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
+	ZookeeperRef *ZookeeperRef `json:"zookeeperRef,omitempty"`
 
 	// ServiceTemplates is an optional configuration for services used to expose database
 	// +optional
@@ -113,9 +97,13 @@ type DruidSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// Monitor is used monitor database instance
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
+
+	// DeletionPolicy controls the delete operation for database
+	// +optional
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
@@ -124,21 +112,22 @@ type DruidSpec struct {
 }
 
 type DruidClusterTopology struct {
-	Coordinators *DruidNode `json:"coordinators"`
+	Coordinators *DruidNode `json:"coordinators,omitempty"`
 	// +optional
 	Overlords *DruidNode `json:"overlords,omitempty"`
 
-	MiddleManagers *DruidNode `json:"middleManagers"`
+	MiddleManagers *DruidDataNode `json:"middleManagers,omitempty"`
 
-	Historicals *DruidNode `json:"historicals"`
+	Historicals *DruidDataNode `json:"historicals,omitempty"`
 
-	Brokers *DruidNode `json:"brokers"`
+	Brokers *DruidNode `json:"brokers,omitempty"`
 	// +optional
 	Routers *DruidNode `json:"routers,omitempty"`
 }
 
 type DruidNode struct {
-	// Replicas represents number of replica for the specific type of node
+	// Replicas represents number of replicas for the specific type of node
+	// +kubebuilder:default=1
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 
@@ -146,37 +135,34 @@ type DruidNode struct {
 	// +optional
 	Suffix string `json:"suffix,omitempty"`
 
-	// Storage to specify how storage shall be used.
-	// +optional
-	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
-
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
 	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
+}
 
-	// NodeSelector is a selector which must be true for the pod to fit on a node.
-	// Selector which must match a node's labels for the pod to be scheduled on that node.
-	// More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-	// +optional
-	// +mapType=atomic
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// If specified, the pod's tolerations.
-	// +optional
-	Tolerations []core.Toleration `json:"tolerations,omitempty"`
+type DruidDataNode struct {
+	// DruidDataNode has all the characteristics of DruidNode
+	DruidNode `json:",inline"`
+
+	// StorageType specifies if the storage
+	// of this node is durable (default) or ephemeral.
+	StorageType StorageType `json:"storageType,omitempty"`
+
+	// Storage to specify how storage shall be used.
+	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
+
+	// EphemeralStorage spec to specify the configuration of ephemeral storage type.
+	EphemeralStorage *core.EmptyDirVolumeSource `json:"ephemeralStorage,omitempty"`
 }
 
 type MetadataStorage struct {
-	// Name of the appbinding of metadata storage
+	// Name of the appbinding of zookeeper
 	// +optional
-	Name *string `json:"name,omitempty"`
-
-	// Namespace of the appbinding of metadata storage
-	// +optional
-	Namespace *string `json:"namespace,omitempty"`
+	*kmapi.ObjectReference `json:",omitempty"`
 
 	// If not KubeDB managed, then specify type of the metadata storage
 	// +optional
-	Type *string `json:"type,omitempty"`
+	Type DruidMetadataStorageType `json:"type,omitempty"`
 
 	// If Druid has the permission to create new tables
 	// +optional
@@ -186,22 +172,18 @@ type MetadataStorage struct {
 type DeepStorageSpec struct {
 	// Specifies the storage type to be used by druid
 	// Possible values: s3, google, azure, hdfs
-	Type *string `json:"type"`
+	Type DruidDeepStorageType `json:"type"`
 
 	// deepStorage.configSecret should contain the necessary data
 	// to connect to the deep storage
 	// +optional
-	ConfigSecret *core.LocalObjectReference `json:"configSecret"`
+	ConfigSecret *core.LocalObjectReference `json:"configSecret,omitempty"`
 }
 
-type ZooKeeperRef struct {
+type ZookeeperRef struct {
 	// Name of the appbinding of zookeeper
 	// +optional
-	Name *string `json:"name,omitempty"`
-
-	// Namespace of the appbinding of zookeeper
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
+	*kmapi.ObjectReference `json:",omitempty"`
 
 	// Base ZooKeeperSpec path
 	// +optional
@@ -210,8 +192,6 @@ type ZooKeeperRef struct {
 
 // DruidStatus defines the observed state of Druid
 type DruidStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	// Specifies the current phase of the database
 	// +optional
 	Phase DruidPhase `json:"phase,omitempty"`
@@ -222,6 +202,8 @@ type DruidStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -243,6 +225,7 @@ const (
 	DruidPhaseCritical     DruidPhase = "Critical"
 )
 
+// +kubebuilder:validation:Enum=coordinators;overlords;brokers;routers;middleManagers;historicals
 type DruidNodeRoleType string
 
 const (
@@ -252,4 +235,22 @@ const (
 	DruidNodeRoleRouters        DruidNodeRoleType = "routers"
 	DruidNodeRoleMiddleManagers DruidNodeRoleType = "middleManagers"
 	DruidNodeRoleHistoricals    DruidNodeRoleType = "historicals"
+)
+
+// +kubebuilder:validation:Enum=MySQL;PostgreSQL
+type DruidMetadataStorageType string
+
+const (
+	DruidMetadataStorageMySQL      DruidMetadataStorageType = "MySQL"
+	DruidMetadataStoragePostgreSQL DruidMetadataStorageType = "PostgreSQL"
+)
+
+// +kubebuilder:validation:Enum=s3;google;azure;hdfs
+type DruidDeepStorageType string
+
+const (
+	DruidDeepStorageS3     DruidDeepStorageType = "s3"
+	DruidDeepStorageGoogle DruidDeepStorageType = "google"
+	DruidDeepStorageAzure  DruidDeepStorageType = "azure"
+	DruidDeepStorageHDFS   DruidDeepStorageType = "hdfs"
 )

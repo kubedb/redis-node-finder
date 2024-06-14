@@ -57,17 +57,17 @@ spec:
                   configSecret:
                     properties:
                       name:
+                        default: ""
                         type: string
                     type: object
                     x-kubernetes-map-type: atomic
-                  inlineConfig:
-                    type: string
                   removeCustomConfig:
                     type: boolean
                 type: object
               databaseRef:
                 properties:
                   name:
+                    default: ""
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
@@ -340,6 +340,8 @@ spec:
                     - Offline
                     - Online
                     type: string
+                required:
+                - mode
                 type: object
             required:
             - databaseRef
