@@ -14,12 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha1 is the v1alpha1 version of the API.
+package cluster
 
-// +k8s:deepcopy-gen=package,register
-// +k8s:conversion-gen=kmodules.xyz/custom-resources/apis/auditor
-// +k8s:openapi-gen=true
-// +k8s:defaulter-gen=TypeMeta
+import (
+	"context"
 
-// +groupName=auditor.appscode.com
-package v1alpha1
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+func IsACEManaged(kc client.Client) bool {
+	var list unstructured.UnstructuredList
+	list.SetAPIVersion("apps/v1")
+	list.SetKind("Deployment")
+	err := kc.List(context.TODO(), &list, client.InNamespace("kubeops"), client.MatchingLabels{
+		"app.kubernetes.io/name":     "kube-ui-server",
+		"app.kubernetes.io/instance": "kube-ui-server",
+	})
+	if err != nil {
+		klog.Errorln(err)
+	}
+	return len(list.Items) > 0
+}

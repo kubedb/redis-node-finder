@@ -14,7 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package auditor
+package cluster
 
-// GroupName is the group name use in this package
-const GroupName = "auditor.appscode.com"
+import (
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+func IsOpenShiftManaged(mapper meta.RESTMapper) bool {
+	if _, err := mapper.RESTMappings(schema.GroupKind{
+		Group: "project.openshift.io",
+		Kind:  "Project",
+	}); err == nil {
+		return true
+	}
+	return false
+}
