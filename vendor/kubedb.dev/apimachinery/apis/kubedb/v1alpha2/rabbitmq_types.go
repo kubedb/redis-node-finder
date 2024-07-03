@@ -20,6 +20,7 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
@@ -51,14 +52,8 @@ type RabbitMQ struct {
 	Status RabbitMQStatus `json:"status,omitempty"`
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // RabbitMQSpec defines the desired state of RabbitMQ
 type RabbitMQSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Version of RabbitMQ to be deployed.
 	Version string `json:"version"`
 
@@ -105,20 +100,22 @@ type RabbitMQSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// Monitor is used monitor database instance
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
+
+	// DeletionPolicy controls the delete operation for database
+	// +optional
+	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
-	// +kubebuilder:default={periodSeconds: 20, timeoutSeconds: 10, failureThreshold: 3}
+	// +kubebuilder:default={periodSeconds: 10, timeoutSeconds: 10, failureThreshold: 3}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
 }
 
 // RabbitMQStatus defines the observed state of RabbitMQ
 type RabbitMQStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	// Specifies the current phase of the database
 	// +optional
 	Phase RabbitMQPhase `json:"phase,omitempty"`
@@ -129,6 +126,8 @@ type RabbitMQStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
+	// +optional
+	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=Provisioning;Ready;NotReady;Critical

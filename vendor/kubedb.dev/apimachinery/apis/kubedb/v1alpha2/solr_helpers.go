@@ -25,17 +25,19 @@ import (
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	promapi "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gomodules.xyz/pointer"
 	v1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	appslister "k8s.io/client-go/listers/apps/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	coreutil "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
+	pslister "kubeops.dev/petset/client/listers/apps/v1"
 )
 
 type SolrApp struct {
@@ -43,10 +45,10 @@ type SolrApp struct {
 }
 
 func (s *Solr) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
-	return crds.MustCustomResourceDefinition(SchemeGroupVersion.WithResource(ResourcePluralSolr))
+	return crds.MustCustomResourceDefinition(SchemeGroupVersion.WithResource(kubedb.ResourcePluralSolr))
 }
 
-func (s *Solr) StatefulsetName(suffix string) string {
+func (s *Solr) PetSetName(suffix string) string {
 	sts := []string{s.Name}
 	if suffix != "" {
 		sts = append(sts, suffix)
@@ -60,7 +62,7 @@ func (s *Solr) Owner() *meta.OwnerReference {
 }
 
 func (s *Solr) ResourceKind() string {
-	return ResourceKindSolr
+	return kubedb.ResourceKindSolr
 }
 
 func (s *Solr) GoverningServiceName() string {
@@ -90,7 +92,7 @@ func (s *Solr) SolrSecretName(suffix string) string {
 }
 
 func (s *Solr) SolrSecretKey() string {
-	return SolrSecretKey
+	return kubedb.SolrSecretKey
 }
 
 func (s *Solr) Merge(opt map[string]string) map[string]string {
@@ -138,7 +140,7 @@ func (s *Solr) OffshootLabels() map[string]string {
 }
 
 func (s *Solr) offshootLabels(selector, override map[string]string) map[string]string {
-	selector[meta_util.ComponentLabelKey] = ComponentDatabase
+	selector[meta_util.ComponentLabelKey] = kubedb.ComponentDatabase
 	return meta_util.FilterKeys(kubedb.GroupName, selector, meta_util.OverwriteKeys(nil, s.Labels, override))
 }
 
@@ -156,7 +158,7 @@ func (s *Solr) ResourceFQN() string {
 }
 
 func (s *Solr) ResourcePlural() string {
-	return ResourcePluralSolr
+	return kubedb.ResourcePluralSolr
 }
 
 func (s SolrApp) Name() string {
@@ -164,7 +166,7 @@ func (s SolrApp) Name() string {
 }
 
 func (s SolrApp) Type() appcat.AppType {
-	return appcat.AppType(fmt.Sprintf("%s/%s", kubedb.GroupName, ResourceSingularSolr))
+	return appcat.AppType(fmt.Sprintf("%s/%s", kubedb.GroupName, kubedb.ResourceSingularSolr))
 }
 
 func (s *Solr) AppBindingMeta() appcat.AppBindingMeta {
@@ -179,13 +181,58 @@ func (s *Solr) GetConnectionScheme() string {
 	return scheme
 }
 
+func (s *Solr) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]string) map[string]string {
+	svcTemplate := GetServiceTemplate(s.Spec.ServiceTemplates, alias)
+	return s.offshootLabels(meta_util.OverwriteKeys(s.OffshootSelectors(), extraLabels...), svcTemplate.Labels)
+}
+
+type solrStatsService struct {
+	*Solr
+}
+
+func (s solrStatsService) GetNamespace() string {
+	return s.Solr.GetNamespace()
+}
+
+func (s solrStatsService) ServiceName() string {
+	return s.OffshootName() + "-stats"
+}
+
+func (s solrStatsService) ServiceMonitorName() string {
+	return s.ServiceName()
+}
+
+func (s solrStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return s.OffshootLabels()
+}
+
+func (s solrStatsService) Path() string {
+	return kubedb.DefaultStatsPath
+}
+
+func (s solrStatsService) Scheme() string {
+	return ""
+}
+
+func (s solrStatsService) TLSConfig() *promapi.TLSConfig {
+	return nil
+}
+
+func (s *Solr) StatsService() mona.StatsAccessor {
+	return &solrStatsService{s}
+}
+
+func (s *Solr) StatsServiceLabels() map[string]string {
+	return s.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
+}
+
 func (s *Solr) PVCName(alias string) string {
 	return meta_util.NameWithSuffix(s.Name, alias)
 }
 
 func (s *Solr) SetDefaults(slVersion *catalog.SolrVersion) {
-	if s.Spec.TerminationPolicy == "" {
-		s.Spec.TerminationPolicy = TerminationPolicyDelete
+	if s.Spec.DeletionPolicy == "" {
+		s.Spec.DeletionPolicy = TerminationPolicyDelete
 	}
 
 	if s.Spec.StorageType == "" {
@@ -195,6 +242,18 @@ func (s *Solr) SetDefaults(slVersion *catalog.SolrVersion) {
 	if s.Spec.AuthSecret == nil {
 		s.Spec.AuthSecret = &v1.LocalObjectReference{
 			Name: s.SolrSecretName("admin-cred"),
+		}
+	}
+
+	if s.Spec.ZookeeperDigestSecret == nil {
+		s.Spec.ZookeeperDigestSecret = &v1.LocalObjectReference{
+			Name: s.SolrSecretName("zk-digest"),
+		}
+	}
+
+	if s.Spec.ZookeeperDigestReadonlySecret == nil {
+		s.Spec.ZookeeperDigestReadonlySecret = &v1.LocalObjectReference{
+			Name: s.SolrSecretName("zk-digest-readonly"),
 		}
 	}
 
@@ -212,13 +271,13 @@ func (s *Solr) SetDefaults(slVersion *catalog.SolrVersion) {
 			if s.Spec.Topology.Data.Replicas == nil {
 				s.Spec.Topology.Data.Replicas = pointer.Int32P(1)
 			}
-
 			if s.Spec.Topology.Data.PodTemplate.Spec.SecurityContext == nil {
-				s.Spec.Topology.Data.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: slVersion.Spec.SecurityContext.RunAsUser}
+				s.Spec.Topology.Data.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{}
 			}
 			s.Spec.Topology.Data.PodTemplate.Spec.SecurityContext.FSGroup = slVersion.Spec.SecurityContext.RunAsUser
 			s.setDefaultContainerSecurityContext(slVersion, &s.Spec.Topology.Data.PodTemplate)
-			s.setDefaultInitContainerSecurityContext(slVersion, &s.Spec.Topology.Data.PodTemplate)
+			s.setDefaultContainerResourceLimits(&s.Spec.Topology.Data.PodTemplate)
+
 		}
 
 		if s.Spec.Topology.Overseer != nil {
@@ -228,13 +287,12 @@ func (s *Solr) SetDefaults(slVersion *catalog.SolrVersion) {
 			if s.Spec.Topology.Overseer.Replicas == nil {
 				s.Spec.Topology.Overseer.Replicas = pointer.Int32P(1)
 			}
-
 			if s.Spec.Topology.Overseer.PodTemplate.Spec.SecurityContext == nil {
-				s.Spec.Topology.Overseer.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: slVersion.Spec.SecurityContext.RunAsUser}
+				s.Spec.Topology.Overseer.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{}
 			}
 			s.Spec.Topology.Overseer.PodTemplate.Spec.SecurityContext.FSGroup = slVersion.Spec.SecurityContext.RunAsUser
 			s.setDefaultContainerSecurityContext(slVersion, &s.Spec.Topology.Overseer.PodTemplate)
-			s.setDefaultInitContainerSecurityContext(slVersion, &s.Spec.Topology.Overseer.PodTemplate)
+			s.setDefaultContainerResourceLimits(&s.Spec.Topology.Overseer.PodTemplate)
 		}
 
 		if s.Spec.Topology.Coordinator != nil {
@@ -244,57 +302,57 @@ func (s *Solr) SetDefaults(slVersion *catalog.SolrVersion) {
 			if s.Spec.Topology.Coordinator.Replicas == nil {
 				s.Spec.Topology.Coordinator.Replicas = pointer.Int32P(1)
 			}
-
 			if s.Spec.Topology.Coordinator.PodTemplate.Spec.SecurityContext == nil {
-				s.Spec.Topology.Coordinator.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: slVersion.Spec.SecurityContext.RunAsUser}
+				s.Spec.Topology.Coordinator.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{}
 			}
 			s.Spec.Topology.Coordinator.PodTemplate.Spec.SecurityContext.FSGroup = slVersion.Spec.SecurityContext.RunAsUser
 			s.setDefaultContainerSecurityContext(slVersion, &s.Spec.Topology.Coordinator.PodTemplate)
-			s.setDefaultInitContainerSecurityContext(slVersion, &s.Spec.Topology.Coordinator.PodTemplate)
+			s.setDefaultContainerResourceLimits(&s.Spec.Topology.Coordinator.PodTemplate)
 		}
 	} else {
-
 		if s.Spec.Replicas == nil {
 			s.Spec.Replicas = pointer.Int32P(1)
 		}
-
 		if s.Spec.PodTemplate.Spec.SecurityContext == nil {
-			s.Spec.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{FSGroup: slVersion.Spec.SecurityContext.RunAsUser}
+			s.Spec.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{}
 		}
-
 		s.Spec.PodTemplate.Spec.SecurityContext.FSGroup = slVersion.Spec.SecurityContext.RunAsUser
 		s.setDefaultContainerSecurityContext(slVersion, &s.Spec.PodTemplate)
+		s.setDefaultContainerResourceLimits(&s.Spec.PodTemplate)
+	}
 
-		s.setDefaultInitContainerSecurityContext(slVersion, &s.Spec.PodTemplate)
+	if s.Spec.Monitor != nil {
+		if s.Spec.Monitor.Prometheus == nil {
+			s.Spec.Monitor.Prometheus = &mona.PrometheusSpec{}
+		}
+		if s.Spec.Monitor.Prometheus != nil && s.Spec.Monitor.Prometheus.Exporter.Port == 0 {
+			s.Spec.Monitor.Prometheus.Exporter.Port = kubedb.SolrExporterPort
+		}
+		s.Spec.Monitor.SetDefaults()
 	}
 }
 
-func (s *Solr) setDefaultInitContainerSecurityContext(slVersion *catalog.SolrVersion, podTemplate *ofst.PodTemplateSpec) {
-	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, SolrInitContainerName)
+func (s *Solr) setDefaultContainerSecurityContext(slVersion *catalog.SolrVersion, podTemplate *ofst.PodTemplateSpec) {
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.SolrInitContainerName)
 	if initContainer == nil {
 		initContainer = &v1.Container{
-			Name: SolrInitContainerName,
+			Name: kubedb.SolrInitContainerName,
 		}
 	}
 	if initContainer.SecurityContext == nil {
 		initContainer.SecurityContext = &v1.SecurityContext{}
 	}
-	apis.SetDefaultResourceLimits(&initContainer.Resources, DefaultResources)
 	s.assignDefaultContainerSecurityContext(slVersion, initContainer.SecurityContext)
 	podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
-}
-
-func (s *Solr) setDefaultContainerSecurityContext(slVersion *catalog.SolrVersion, podTemplate *ofst.PodTemplateSpec) {
-	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, SolrContainerName)
+	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SolrContainerName)
 	if container == nil {
 		container = &v1.Container{
-			Name: SolrContainerName,
+			Name: kubedb.SolrContainerName,
 		}
 	}
 	if container.SecurityContext == nil {
 		container.SecurityContext = &v1.SecurityContext{}
 	}
-	apis.SetDefaultResourceLimits(&container.Resources, DefaultResources)
 	s.assignDefaultContainerSecurityContext(slVersion, container.SecurityContext)
 	podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *container)
 }
@@ -316,6 +374,18 @@ func (s *Solr) assignDefaultContainerSecurityContext(slVersion *catalog.SolrVers
 	}
 	if sc.SeccompProfile == nil {
 		sc.SeccompProfile = secomp.DefaultSeccompProfile()
+	}
+}
+
+func (s *Solr) setDefaultContainerResourceLimits(podTemplate *ofst.PodTemplateSpec) {
+	dbContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SolrContainerName)
+	if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResourcesCoreAndMemoryIntensiveSolr)
+	}
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.SolrInitContainerName)
+	if initContainer != nil && (initContainer.Resources.Requests == nil && initContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&initContainer.Resources, kubedb.DefaultInitContainerResource)
 	}
 }
 
@@ -346,14 +416,22 @@ func (s *Solr) GetPersistentSecrets() []string {
 		secrets = append(secrets, s.Spec.AuthConfigSecret.Name)
 	}
 
+	if s.Spec.ZookeeperDigestSecret != nil {
+		secrets = append(secrets, s.Spec.ZookeeperDigestSecret.Name)
+	}
+
+	if s.Spec.ZookeeperDigestReadonlySecret != nil {
+		secrets = append(secrets, s.Spec.ZookeeperDigestReadonlySecret.Name)
+	}
+
 	return secrets
 }
 
-func (s *Solr) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, string, error) {
-	// Desire number of statefulSets
+func (s *Solr) ReplicasAreReady(lister pslister.PetSetLister) (bool, string, error) {
+	// Desire number of petSets
 	expectedItems := 1
 	if s.Spec.Topology != nil {
 		expectedItems = 3
 	}
-	return checkReplicas(lister.StatefulSets(s.Namespace), labels.SelectorFromSet(s.OffshootLabels()), expectedItems)
+	return checkReplicasOfPetSet(lister.PetSets(s.Namespace), labels.SelectorFromSet(s.OffshootLabels()), expectedItems)
 }

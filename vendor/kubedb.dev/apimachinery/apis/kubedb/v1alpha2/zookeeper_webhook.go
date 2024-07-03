@@ -21,12 +21,15 @@ import (
 	"errors"
 
 	"kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	"kubedb.dev/apimachinery/apis/kubedb"
 
+	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	ofst "kmodules.xyz/offshoot-api/api/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -76,7 +79,7 @@ func (z *ZooKeeper) ValidateDelete() (admission.Warnings, error) {
 	zookeeperlog.Info("validate delete", "name", z.Name)
 
 	var allErr field.ErrorList
-	if z.Spec.TerminationPolicy == TerminationPolicyDoNotTerminate {
+	if z.Spec.DeletionPolicy == TerminationPolicyDoNotTerminate {
 		allErr = append(allErr, field.Invalid(field.NewPath("spec").Child("teminationPolicy"),
 			z.Name,
 			"Can not delete as terminationPolicy is set to \"DoNotTerminate\""))
@@ -107,7 +110,7 @@ func (z *ZooKeeper) ValidateCreateOrUpdate() (admission.Warnings, error) {
 			err.Error()))
 	}
 
-	err = z.validateVolumesMountPaths()
+	err = z.validateVolumesMountPaths(&z.Spec.PodTemplate)
 	if err != nil {
 		allErr = append(allErr, field.Invalid(field.NewPath("spec").Child("podTemplate").Child("spec").Child("volumeMounts"),
 			z.Name,
@@ -130,9 +133,9 @@ func (z *ZooKeeper) validateVersion() error {
 }
 
 var zookeeperReservedVolumes = []string{
-	ZooKeeperDataVolumeName,
-	ZooKeeperScriptVolumeName,
-	ZooKeeperConfigVolumeName,
+	kubedb.ZooKeeperDataVolumeName,
+	kubedb.ZooKeeperScriptVolumeName,
+	kubedb.ZooKeeperConfigVolumeName,
 }
 
 func (z *ZooKeeper) validateVolumes() error {
@@ -154,21 +157,30 @@ func (z *ZooKeeper) validateVolumes() error {
 }
 
 var zookeeperReservedVolumeMountPaths = []string{
-	ZooKeeperScriptVolumePath,
-	ZooKeeperConfigVolumePath,
-	ZooKeeperDataVolumePath,
+	kubedb.ZooKeeperScriptVolumePath,
+	kubedb.ZooKeeperConfigVolumePath,
+	kubedb.ZooKeeperDataVolumePath,
 }
 
-func (z *ZooKeeper) validateVolumesMountPaths() error {
-	if z.Spec.PodTemplate.Spec.VolumeMounts == nil {
+func (z *ZooKeeper) validateVolumesMountPaths(podTemplate *ofst.PodTemplateSpec) error {
+	if podTemplate == nil {
 		return nil
 	}
-	rPaths := zookeeperReservedVolumeMountPaths
-	volumeMountPaths := z.Spec.PodTemplate.Spec.VolumeMounts
-	for _, rvm := range rPaths {
-		for _, ugv := range volumeMountPaths {
-			if ugv.Name == rvm {
-				return errors.New("Cannot use a reserve volume name: " + rvm)
+	var containerList []core.Container
+	if podTemplate.Spec.Containers != nil {
+		containerList = append(containerList, podTemplate.Spec.Containers...)
+	}
+	if podTemplate.Spec.InitContainers != nil {
+		containerList = append(containerList, podTemplate.Spec.InitContainers...)
+	}
+
+	for _, rvmp := range zookeeperReservedVolumeMountPaths {
+		for i := range containerList {
+			mountPathList := containerList[i].VolumeMounts
+			for j := range mountPathList {
+				if mountPathList[j].MountPath == rvmp {
+					return errors.New("Can't use a reserve volume mount path name: " + rvmp)
+				}
 			}
 		}
 	}

@@ -42,7 +42,7 @@ spec:
         description: Snapshot represents the state of a backup run to a particular
           Repository. Multiple components of the same target may be backed up in the
           same Snapshot. This is a namespaced CRD. It should be in the same namespace
-          as the respective Repository. Stash operator is responsible for creating
+          as the respective Repository. KubeStash operator is responsible for creating
           Snapshot CR. Snapshot is not supposed to be created/edited by the end user.
         properties:
           apiVersion:
@@ -98,8 +98,8 @@ spec:
                 type: string
               paused:
                 description: Paused specifies whether the Snapshot is paused or not.
-                  If the Snapshot is paused, Stash will not process any further event
-                  for the Snapshot.
+                  If the Snapshot is paused, KubeStash will not process any further
+                  event for the Snapshot.
                 type: boolean
               repository:
                 description: Repository specifies the name of the Repository where
@@ -210,8 +210,36 @@ spec:
                             description: VolumeSnapshotName represents the name of
                               created volumeSnapshot.
                             type: string
+                          volumeSnapshotTime:
+                            description: VolumeSnapshotTime indicates the timestamp
+                              at which the volumeSnapshot was created.
+                            format: date-time
+                            type: string
                         type: object
                       type: array
+                    walGStats:
+                      description: WalGStats specifies the "WalG" driver specific
+                        information
+                      properties:
+                        databases:
+                          description: Databases represents the list of target backup
+                            databases.
+                          items:
+                            type: string
+                          type: array
+                        id:
+                          description: Id represents the WalG snapshot ID.
+                          type: string
+                        startTime:
+                          description: StartTime represents the WalG backup start
+                            time.
+                          format: date-time
+                          type: string
+                        stopTime:
+                          description: StopTime represents the WalG backup stop time.
+                          format: date-time
+                          type: string
+                      type: object
                     walSegments:
                       description: WalSegments specifies a list of wall segment for
                         individual component

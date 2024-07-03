@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	dbapi "kubedb.dev/apimachinery/apis/kubedb/v1"
 
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,9 +61,9 @@ type ConnectorSpec struct {
 	// ConfigSecret is a required field to provide configuration file for Connector to create connectors for Kafka connect cluster(i.e connector.properties).
 	ConfigSecret *core.LocalObjectReference `json:"configSecret"`
 
-	// TerminationPolicy controls the delete operation for Connector
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy api.TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy dbapi.DeletionPolicy `json:"deletionPolicy,omitempty"`
 }
 
 // ConnectorStatus defines the observed state of connectors
@@ -80,15 +80,19 @@ type ConnectorStatus struct {
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=Pending;Running;Paused;Stopped;Unknown
+// +kubebuilder:validation:Enum=Pending;Unassigned;Running;Paused;Failed;Restarting;Stopped;Destroyed;Unknown
 type ConnectorPhase string
 
 const (
-	ConnectorPhasePending ConnectorPhase = "Pending"
-	ConnectorPhaseRunning ConnectorPhase = "Running"
-	ConnectorPhasePaused  ConnectorPhase = "Paused"
-	ConnectorPhaseStopped ConnectorPhase = "Stopped"
-	ConnectorPhaseUnknown ConnectorPhase = "Unknown"
+	ConnectorPhasePending    ConnectorPhase = "Pending"
+	ConnectorPhaseUnassigned ConnectorPhase = "Unassigned"
+	ConnectorPhaseRunning    ConnectorPhase = "Running"
+	ConnectorPhasePaused     ConnectorPhase = "Paused"
+	ConnectorPhaseFailed     ConnectorPhase = "Failed"
+	ConnectorPhaseRestarting ConnectorPhase = "Restarting"
+	ConnectorPhaseStopped    ConnectorPhase = "Stopped"
+	ConnectorPhaseDestroyed  ConnectorPhase = "Destroyed"
+	ConnectorPhaseUnknown    ConnectorPhase = "Unknown"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -21,24 +21,28 @@ import (
 	"fmt"
 	"strings"
 
+	"kubedb.dev/apimachinery/apis"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	promapi "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	appslister "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	coreutil "kmodules.xyz/client-go/core/v1"
 	metautil "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
+	pslister "kubeops.dev/petset/client/listers/apps/v1"
 )
 
 func (s *Singlestore) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
@@ -82,6 +86,79 @@ func (s *Singlestore) Owner() *meta.OwnerReference {
 	return meta.NewControllerRef(s, SchemeGroupVersion.WithKind(s.ResourceKind()))
 }
 
+type singlestoreStatsService struct {
+	*Singlestore
+}
+
+func (s singlestoreStatsService) GetNamespace() string {
+	return s.Singlestore.GetNamespace()
+}
+
+func (s Singlestore) GetNameSpacedName() string {
+	return s.Namespace + "/" + s.Name
+}
+
+func (s singlestoreStatsService) ServiceName() string {
+	return s.OffshootName() + "-stats"
+}
+
+func (s singlestoreStatsService) ServiceMonitorName() string {
+	return s.ServiceName()
+}
+
+func (s singlestoreStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return s.OffshootLabels()
+}
+
+func (s singlestoreStatsService) Path() string {
+	return kubedb.DefaultStatsPath
+}
+
+func (s singlestoreStatsService) Scheme() string {
+	return ""
+}
+
+func (s singlestoreStatsService) TLSConfig() *promapi.TLSConfig {
+	if s.Spec.TLS == nil {
+		return nil
+	}
+	return &promapi.TLSConfig{
+		SafeTLSConfig: promapi.SafeTLSConfig{
+			CA: promapi.SecretOrConfigMap{
+				Secret: &core.SecretKeySelector{
+					LocalObjectReference: core.LocalObjectReference{
+						Name: s.GetCertSecretName(SinglestoreClientCert),
+					},
+					Key: kubedb.CACert,
+				},
+			},
+			Cert: promapi.SecretOrConfigMap{
+				Secret: &core.SecretKeySelector{
+					LocalObjectReference: core.LocalObjectReference{
+						Name: s.GetCertSecretName(SinglestoreClientCert),
+					},
+					Key: core.TLSCertKey,
+				},
+			},
+			KeySecret: &core.SecretKeySelector{
+				LocalObjectReference: core.LocalObjectReference{
+					Name: s.GetCertSecretName(SinglestoreClientCert),
+				},
+				Key: core.TLSPrivateKeyKey,
+			},
+			InsecureSkipVerify: ptr.To(false),
+		},
+	}
+}
+
+func (s Singlestore) StatsService() mona.StatsAccessor {
+	return &singlestoreStatsService{&s}
+}
+
+func (s Singlestore) StatsServiceLabels() map[string]string {
+	return s.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
+}
+
 func (s *Singlestore) OffshootName() string {
 	return s.Name
 }
@@ -92,10 +169,6 @@ func (s *Singlestore) ServiceName() string {
 
 func (s *Singlestore) AppBindingMeta() appcat.AppBindingMeta {
 	return &singlestoreApp{s}
-}
-
-func (s *Singlestore) StandbyServiceName() string {
-	return metautil.NameWithPrefix(s.ServiceName(), "standby")
 }
 
 func (s *Singlestore) GoverningServiceName() string {
@@ -111,7 +184,7 @@ func (s *Singlestore) DefaultUserCredSecretName(username string) string {
 }
 
 func (s *Singlestore) offshootLabels(selector, override map[string]string) map[string]string {
-	selector[metautil.ComponentLabelKey] = ComponentDatabase
+	selector[metautil.ComponentLabelKey] = kubedb.ComponentDatabase
 	return metautil.FilterKeys(kubedb.GroupName, selector, metautil.OverwriteKeys(nil, s.Labels, override))
 }
 
@@ -122,10 +195,6 @@ func (s *Singlestore) ServiceLabels(alias ServiceAlias, extraLabels ...map[strin
 
 func (s *Singlestore) OffshootLabels() map[string]string {
 	return s.offshootLabels(s.OffshootSelectors(), nil)
-}
-
-func (s *Singlestore) GetNameSpacedName() string {
-	return s.Namespace + "/" + s.Name
 }
 
 func (s *Singlestore) OffshootSelectors(extraSelectors ...map[string]string) map[string]string {
@@ -150,21 +219,32 @@ func (s *Singlestore) PVCName(alias string) string {
 	// return s.OffshootName()
 }
 
-func (s *Singlestore) AggregatorStatefulSet() string {
-	return metautil.NameWithSuffix(s.OffshootName(), StatefulSetTypeMasterAggregator)
+func (s *Singlestore) AggregatorPetSet() string {
+	ps := s.OffshootName()
+	if s.Spec.Topology.Aggregator.Suffix != "" {
+		ps = metautil.NameWithSuffix(ps, s.Spec.Topology.Aggregator.Suffix)
+	}
+	return metautil.NameWithSuffix(ps, kubedb.PetSetTypeAggregator)
 }
 
-func (s *Singlestore) LeafStatefulSet() string {
-	return metautil.NameWithSuffix(s.OffshootName(), StatefulSetTypeLeaf)
+func (s *Singlestore) LeafPetSet() string {
+	ps := s.OffshootName()
+	if s.Spec.Topology.Leaf.Suffix != "" {
+		ps = metautil.NameWithSuffix(ps, s.Spec.Topology.Leaf.Suffix)
+	}
+	return metautil.NameWithSuffix(ps, kubedb.PetSetTypeLeaf)
 }
 
-func (s *Singlestore) PodLabels(extraLabels ...map[string]string) map[string]string {
-	return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), s.Spec.PodTemplate.Labels)
+func (s *Singlestore) PodLabels(podTemplate *ofst.PodTemplateSpec, extraLabels ...map[string]string) map[string]string {
+	if podTemplate != nil && podTemplate.Labels != nil {
+		return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), podTemplate.Labels)
+	}
+	return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), nil)
 }
 
 func (s *Singlestore) PodLabel(podTemplate *ofst.PodTemplateSpec) map[string]string {
 	if podTemplate != nil && podTemplate.Labels != nil {
-		return s.offshootLabels(s.OffshootSelectors(), s.Spec.PodTemplate.Labels)
+		return s.offshootLabels(s.OffshootSelectors(), podTemplate.Labels)
 	}
 	return s.offshootLabels(s.OffshootSelectors(), nil)
 }
@@ -173,7 +253,7 @@ func (s *Singlestore) ConfigSecretName() string {
 	return metautil.NameWithSuffix(s.OffshootName(), "config")
 }
 
-func (s *Singlestore) StatefulSetName() string {
+func (s *Singlestore) PetSetName() string {
 	return s.OffshootName()
 }
 
@@ -181,8 +261,11 @@ func (s *Singlestore) ServiceAccountName() string {
 	return s.OffshootName()
 }
 
-func (s *Singlestore) PodControllerLabels(extraLabels ...map[string]string) map[string]string {
-	return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), s.Spec.PodTemplate.Controller.Labels)
+func (s *Singlestore) PodControllerLabels(podTemplate *ofst.PodTemplateSpec, extraLabels ...map[string]string) map[string]string {
+	if podTemplate != nil && podTemplate.Controller.Labels != nil {
+		return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), podTemplate.Controller.Labels)
+	}
+	return s.offshootLabels(metautil.OverwriteKeys(s.OffshootSelectors(), extraLabels...), nil)
 }
 
 func (s *Singlestore) PodControllerLabel(podTemplate *ofst.PodTemplateSpec) map[string]string {
@@ -202,6 +285,23 @@ func (s *Singlestore) SetHealthCheckerDefaults() {
 	if s.Spec.HealthChecker.FailureThreshold == nil {
 		s.Spec.HealthChecker.FailureThreshold = pointer.Int32P(1)
 	}
+}
+
+// CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
+func (s *Singlestore) CertificateName(alias SinglestoreCertificateAlias) string {
+	return metautil.NameWithSuffix(s.Name, fmt.Sprintf("%s-cert", string(alias)))
+}
+
+// GetCertSecretName returns the secret name for a certificate alias if any
+// otherwise returns default certificate secret name for the given alias.
+func (s *Singlestore) GetCertSecretName(alias SinglestoreCertificateAlias) string {
+	if s.Spec.TLS != nil {
+		name, ok := kmapi.GetCertificateSecretName(s.Spec.TLS.Certificates, string(alias))
+		if ok {
+			return name
+		}
+	}
+	return s.CertificateName(alias)
 }
 
 func (s *Singlestore) GetAuthSecretName() string {
@@ -226,14 +326,11 @@ func (s *Singlestore) SetDefaults() {
 	if s.Spec.StorageType == "" {
 		s.Spec.StorageType = StorageTypeDurable
 	}
-	if s.Spec.TerminationPolicy == "" {
-		s.Spec.TerminationPolicy = TerminationPolicyDelete
+	if s.Spec.DeletionPolicy == "" {
+		s.Spec.DeletionPolicy = TerminationPolicyDelete
 	}
 
 	if s.Spec.Topology == nil {
-		if s.Spec.Replicas == nil {
-			s.Spec.Replicas = pointer.Int32P(1)
-		}
 		if s.Spec.PodTemplate == nil {
 			s.Spec.PodTemplate = &ofst.PodTemplateSpec{}
 		}
@@ -269,10 +366,25 @@ func (s *Singlestore) SetDefaults() {
 		s.setDefaultContainerSecurityContext(&sdbVersion, s.Spec.Topology.Leaf.PodTemplate)
 	}
 
-	if s.Spec.EnableSSL {
-		s.SetTLSDefaults()
-	}
+	s.SetTLSDefaults()
+
 	s.SetHealthCheckerDefaults()
+	if s.Spec.Monitor != nil {
+		if s.Spec.Monitor.Prometheus == nil {
+			s.Spec.Monitor.Prometheus = &mona.PrometheusSpec{}
+		}
+		if s.Spec.Monitor.Prometheus != nil && s.Spec.Monitor.Prometheus.Exporter.Port == 0 {
+			s.Spec.Monitor.Prometheus.Exporter.Port = kubedb.SinglestoreExporterPort
+		}
+		s.Spec.Monitor.SetDefaults()
+	}
+
+	if s.IsClustering() {
+		s.setDefaultContainerResourceLimits(s.Spec.Topology.Aggregator.PodTemplate)
+		s.setDefaultContainerResourceLimits(s.Spec.Topology.Leaf.PodTemplate)
+	} else {
+		s.setDefaultContainerResourceLimits(s.Spec.PodTemplate)
+	}
 }
 
 func (s *Singlestore) setDefaultContainerSecurityContext(sdbVersion *catalog.SinglestoreVersion, podTemplate *ofst.PodTemplateSpec) {
@@ -286,42 +398,43 @@ func (s *Singlestore) setDefaultContainerSecurityContext(sdbVersion *catalog.Sin
 		podTemplate.Spec.SecurityContext.FSGroup = sdbVersion.Spec.SecurityContext.RunAsUser
 	}
 
-	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, SinglestoreContainerName)
+	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SinglestoreContainerName)
 	if container == nil {
 		container = &core.Container{
-			Name: SinglestoreContainerName,
+			Name: kubedb.SinglestoreContainerName,
 		}
-		podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, *container)
 	}
 	if container.SecurityContext == nil {
 		container.SecurityContext = &core.SecurityContext{}
 	}
 	s.assignDefaultContainerSecurityContext(sdbVersion, container.SecurityContext)
 
-	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, SinglestoreInitContainerName)
+	podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *container)
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.SinglestoreInitContainerName)
 	if initContainer == nil {
 		initContainer = &core.Container{
-			Name: SinglestoreInitContainerName,
+			Name: kubedb.SinglestoreInitContainerName,
 		}
-		podTemplate.Spec.InitContainers = append(podTemplate.Spec.InitContainers, *initContainer)
 	}
 	if initContainer.SecurityContext == nil {
 		initContainer.SecurityContext = &core.SecurityContext{}
 	}
 	s.assignDefaultInitContainerSecurityContext(sdbVersion, initContainer.SecurityContext)
+	podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 
 	if s.IsClustering() {
-		coordinatorContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, SinglestoreCoordinatorContainerName)
+		coordinatorContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SinglestoreCoordinatorContainerName)
 		if coordinatorContainer == nil {
 			coordinatorContainer = &core.Container{
-				Name: SinglestoreCoordinatorContainerName,
+				Name: kubedb.SinglestoreCoordinatorContainerName,
 			}
-			podTemplate.Spec.Containers = append(podTemplate.Spec.Containers, *coordinatorContainer)
 		}
 		if coordinatorContainer.SecurityContext == nil {
 			coordinatorContainer.SecurityContext = &core.SecurityContext{}
 		}
 		s.assignDefaultContainerSecurityContext(sdbVersion, coordinatorContainer.SecurityContext)
+		podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *coordinatorContainer)
 	}
 }
 
@@ -371,6 +484,25 @@ func (s *Singlestore) assignDefaultContainerSecurityContext(sdbVersion *catalog.
 	}
 }
 
+func (s *Singlestore) setDefaultContainerResourceLimits(podTemplate *ofst.PodTemplateSpec) {
+	dbContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SinglestoreContainerName)
+	if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResourcesMemoryIntensiveSDB)
+	}
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.SinglestoreInitContainerName)
+	if initContainer != nil && (initContainer.Resources.Requests == nil && initContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&initContainer.Resources, kubedb.DefaultInitContainerResource)
+	}
+
+	if s.IsClustering() {
+		coordinatorContainer := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.SinglestoreCoordinatorContainerName)
+		if coordinatorContainer != nil && (coordinatorContainer.Resources.Requests == nil && coordinatorContainer.Resources.Limits == nil) {
+			apis.SetDefaultResourceLimits(&coordinatorContainer.Resources, kubedb.CoordinatorDefaultResources)
+		}
+	}
+}
+
 func (s *Singlestore) SetTLSDefaults() {
 	if s.Spec.TLS == nil || s.Spec.TLS.IssuerRef == nil {
 		return
@@ -379,16 +511,11 @@ func (s *Singlestore) SetTLSDefaults() {
 	s.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(s.Spec.TLS.Certificates, string(SinglestoreClientCert), s.CertificateName(SinglestoreClientCert))
 }
 
-// CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
-func (s *Singlestore) CertificateName(alias SinglestoreCertificateAlias) string {
-	return metautil.NameWithSuffix(s.Name, fmt.Sprintf("%s-cert", string(alias)))
-}
-
-func (s *Singlestore) ReplicasAreReady(lister appslister.StatefulSetLister) (bool, string, error) {
-	// Desire number of statefulSets
+func (s *Singlestore) ReplicasAreReady(lister pslister.PetSetLister) (bool, string, error) {
+	// Desire number of petSets
 	expectedItems := 1
 	if s.Spec.Topology != nil {
 		expectedItems = 2
 	}
-	return checkReplicas(lister.StatefulSets(s.Namespace), labels.SelectorFromSet(s.OffshootLabels()), expectedItems)
+	return checkReplicasOfPetSet(lister.PetSets(s.Namespace), labels.SelectorFromSet(s.OffshootLabels()), expectedItems)
 }

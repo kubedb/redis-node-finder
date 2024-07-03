@@ -103,14 +103,13 @@ type MySQLVerticalScalingSpec struct {
 
 // MySQLVolumeExpansionSpec is the spec for MySQL volume expansion
 type MySQLVolumeExpansionSpec struct {
-	MySQL *resource.Quantity `json:"mysql,omitempty"`
-	// +kubebuilder:default="Online"
-	Mode *VolumeExpansionMode `json:"mode,omitempty"`
+	MySQL *resource.Quantity  `json:"mysql,omitempty"`
+	Mode  VolumeExpansionMode `json:"mode"`
 }
 
 type MySQLCustomConfigurationSpec struct {
 	ConfigSecret       *core.LocalObjectReference `json:"configSecret,omitempty"`
-	InlineConfig       string                     `json:"inlineConfig,omitempty"`
+	ApplyConfig        map[string]string          `json:"applyConfig,omitempty"`
 	RemoveCustomConfig bool                       `json:"removeCustomConfig,omitempty"`
 }
 

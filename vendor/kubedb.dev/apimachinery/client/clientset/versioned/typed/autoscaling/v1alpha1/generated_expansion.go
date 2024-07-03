@@ -18,9 +18,13 @@ limitations under the License.
 
 package v1alpha1
 
+type DruidAutoscalerExpansion interface{}
+
 type ElasticsearchAutoscalerExpansion interface{}
 
 type EtcdAutoscalerExpansion interface{}
+
+type KafkaAutoscalerExpansion interface{}
 
 type MariaDBAutoscalerExpansion interface{}
 
@@ -34,10 +38,16 @@ type PerconaXtraDBAutoscalerExpansion interface{}
 
 type PgBouncerAutoscalerExpansion interface{}
 
+type PgpoolAutoscalerExpansion interface{}
+
 type PostgresAutoscalerExpansion interface{}
 
 type ProxySQLAutoscalerExpansion interface{}
 
+type RabbitMQAutoscalerExpansion interface{}
+
 type RedisAutoscalerExpansion interface{}
 
 type RedisSentinelAutoscalerExpansion interface{}
+
+type SinglestoreAutoscalerExpansion interface{}
