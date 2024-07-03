@@ -120,9 +120,9 @@ type MongoDBSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
 
 	// StorageEngine can be wiredTiger (default) or inMemory
 	// See available StorageEngine: https://docs.mongodb.com/manual/core/storage-engines/
@@ -280,7 +280,7 @@ type MongoArbiterNode struct {
 
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
-	PodTemplate ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
+	PodTemplate *ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
 }
 
 type MongoHiddenNode struct {
@@ -290,7 +290,7 @@ type MongoHiddenNode struct {
 
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
-	PodTemplate ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
+	PodTemplate *ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
 
 	// Replicas represents number of replicas of this specific node.
 	// If current node has replicaset enabled, then replicas is the amount of replicaset nodes.
@@ -314,7 +314,7 @@ type MongoDBNode struct {
 
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
-	PodTemplate ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
+	PodTemplate *ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
 }
 
 type MongoDBStatus struct {

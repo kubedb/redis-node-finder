@@ -98,9 +98,9 @@ type PgBouncerSpec struct {
 	// +optional
 	TLS *kmapi.TLSConfig `json:"tls,omitempty"`
 
-	// TerminationPolicy controls the delete operation for database
+	// DeletionPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy PgBouncerTerminationPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy PgBouncerDeletionPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
@@ -242,8 +242,8 @@ const (
 )
 
 // PgBouncerClientAuthMode represents the ClientAuthMode of PgBouncer clusters ( replicaset )
-// We are allowing md5, scram, cert as ClientAuthMode
-// +kubebuilder:validation:Enum=md5;scram;cert;
+// We are allowing md5, scram-sha-256, cert as ClientAuthMode
+// +kubebuilder:validation:Enum=md5;scram-sha-256;cert;
 type PgBouncerClientAuthMode string
 
 const (
@@ -257,7 +257,7 @@ const (
 	// It is a challenge-response scheme that prevents password sniffing on untrusted connections
 	// and supports storing passwords on the server in a cryptographically hashed form that is thought to be secure.
 	// This is the most secure of the currently provided methods, but it is not supported by older client libraries.
-	PgBouncerClientAuthModeScram PgBouncerClientAuthMode = "scram"
+	PgBouncerClientAuthModeScram PgBouncerClientAuthMode = "scram-sha-256"
 
 	// ClientAuthModeCert represents `cert clientcert=1` auth mode where client need to provide cert and private key for authentication.
 	// When server is config with this auth method. Client can't connect with pgbouncer server with password. They need
@@ -266,13 +266,13 @@ const (
 )
 
 // +kubebuilder:validation:Enum=Delete;WipeOut;DoNotTerminate
-type PgBouncerTerminationPolicy string
+type PgBouncerDeletionPolicy string
 
 const (
 	// Deletes database pods, service, pvcs but leave the stash backup data intact.
-	PgBouncerTerminationPolicyDelete PgBouncerTerminationPolicy = "Delete"
+	PgBouncerDeletionPolicyDelete PgBouncerDeletionPolicy = "Delete"
 	// Deletes database pods, service, pvcs and stash backup data.
-	PgBouncerTerminationPolicyWipeOut PgBouncerTerminationPolicy = "WipeOut"
+	PgBouncerDeletionPolicyWipeOut PgBouncerDeletionPolicy = "WipeOut"
 	// Rejects attempt to delete database using ValidationWebhook.
-	PgBouncerTerminationPolicyDoNotTerminate PgBouncerTerminationPolicy = "DoNotTerminate"
+	PgBouncerDeletionPolicyDoNotTerminate PgBouncerDeletionPolicy = "DoNotTerminate"
 )

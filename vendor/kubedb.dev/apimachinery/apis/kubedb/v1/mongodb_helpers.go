@@ -34,7 +34,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
-	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
@@ -599,7 +598,7 @@ func (m MongoDB) StatsServiceLabels() map[string]string {
 
 // StorageType = Durable
 // storageEngine = wiredTiger
-// TerminationPolicy = Delete
+// DeletionPolicy = Delete
 // SSLMode = disabled
 // clusterAuthMode = keyFile if sslMode is disabled or allowSSL.  & x509 otherwise
 //
@@ -608,7 +607,7 @@ func (m MongoDB) StatsServiceLabels() map[string]string {
 // it sets default ReadinessProbe, livelinessProbe, affinity, ResourceLimits & securityContext
 // then set TLSDefaults & monitor Defaults
 
-func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core_util.Topology) {
+func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion) {
 	if m == nil {
 		return
 	}
@@ -619,8 +618,8 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 	if m.Spec.StorageEngine == "" {
 		m.Spec.StorageEngine = StorageEngineWiredTiger
 	}
-	if m.Spec.TerminationPolicy == "" {
-		m.Spec.TerminationPolicy = TerminationPolicyDelete
+	if m.Spec.DeletionPolicy == "" {
+		m.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if m.Spec.SSLMode == "" {
@@ -635,22 +634,27 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		}
 	}
 
+	m.initializePodTemplates()
+
 	if m.Spec.ShardTopology != nil {
-		m.setPodTemplateDefaultValues(&m.Spec.ShardTopology.Mongos.PodTemplate, mgVersion, false)
-		m.setPodTemplateDefaultValues(&m.Spec.ShardTopology.Shard.PodTemplate, mgVersion, true)
-		m.setPodTemplateDefaultValues(&m.Spec.ShardTopology.ConfigServer.PodTemplate, mgVersion, true)
+		m.setPodTemplateDefaultValues(m.Spec.ShardTopology.Mongos.PodTemplate, mgVersion, false)
+		m.setPodTemplateDefaultValues(m.Spec.ShardTopology.Shard.PodTemplate, mgVersion, true)
+		m.setPodTemplateDefaultValues(m.Spec.ShardTopology.ConfigServer.PodTemplate, mgVersion, true)
 	} else {
 		if m.Spec.Replicas == nil {
 			m.Spec.Replicas = pointer.Int32P(1)
+		}
+		if m.Spec.PodTemplate == nil {
+			m.Spec.PodTemplate = new(ofstv2.PodTemplateSpec)
 		}
 		m.setPodTemplateDefaultValues(m.Spec.PodTemplate, mgVersion, m.Spec.ReplicaSet != nil)
 	}
 
 	if m.Spec.Arbiter != nil {
-		m.setPodTemplateDefaultValues(&m.Spec.Arbiter.PodTemplate, mgVersion, false, true)
+		m.setPodTemplateDefaultValues(m.Spec.Arbiter.PodTemplate, mgVersion, false, true)
 	}
 	if m.Spec.Hidden != nil {
-		m.setPodTemplateDefaultValues(&m.Spec.Hidden.PodTemplate, mgVersion, false)
+		m.setPodTemplateDefaultValues(m.Spec.Hidden.PodTemplate, mgVersion, false)
 	}
 
 	m.SetTLSDefaults()
@@ -663,6 +667,31 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		if m.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup == nil {
 			m.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup = mgVersion.Spec.SecurityContext.RunAsGroup
 		}
+	}
+}
+
+func (m *MongoDB) initializePodTemplates() {
+	if m.Spec.ShardTopology != nil {
+		if m.Spec.ShardTopology.Shard.PodTemplate == nil {
+			m.Spec.ShardTopology.Shard.PodTemplate = new(ofstv2.PodTemplateSpec)
+		}
+		if m.Spec.ShardTopology.Mongos.PodTemplate == nil {
+			m.Spec.ShardTopology.Mongos.PodTemplate = new(ofstv2.PodTemplateSpec)
+		}
+		if m.Spec.ShardTopology.ConfigServer.PodTemplate == nil {
+			m.Spec.ShardTopology.ConfigServer.PodTemplate = new(ofstv2.PodTemplateSpec)
+		}
+	} else {
+		if m.Spec.PodTemplate == nil {
+			m.Spec.PodTemplate = new(ofstv2.PodTemplateSpec)
+		}
+	}
+
+	if m.Spec.Arbiter != nil && m.Spec.Arbiter.PodTemplate == nil {
+		m.Spec.Arbiter.PodTemplate = new(ofstv2.PodTemplateSpec)
+	}
+	if m.Spec.Hidden != nil && m.Spec.Hidden.PodTemplate == nil {
+		m.Spec.Hidden.PodTemplate = new(ofstv2.PodTemplateSpec)
 	}
 }
 
@@ -699,6 +728,9 @@ func (m *MongoDB) setContainerDefaultValues(container *core.Container, mgVersion
 	defaultResource core.ResourceRequirements, isArbiter ...bool,
 ) {
 	m.setContainerDefaultResources(container, defaultResource)
+	if container.SecurityContext == nil {
+		container.SecurityContext = &core.SecurityContext{}
+	}
 	m.assignDefaultContainerSecurityContext(mgVersion, container.SecurityContext)
 	if container.Name == kubedb.MongoDBContainerName {
 		m.setDefaultProbes(container, mgVersion, isArbiter...)
@@ -718,9 +750,6 @@ func (m *MongoDB) setDefaultPodSecurityContext(mgVersion *v1alpha1.MongoDBVersio
 }
 
 func (m *MongoDB) assignDefaultContainerSecurityContext(mgVersion *v1alpha1.MongoDBVersion, sc *core.SecurityContext) {
-	if sc == nil {
-		sc = &core.SecurityContext{}
-	}
 	if sc.AllowPrivilegeEscalation == nil {
 		sc.AllowPrivilegeEscalation = pointer.BoolP(false)
 	}

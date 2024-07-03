@@ -15,7 +15,7 @@ require (
 	k8s.io/klog/v2 v2.120.1
 	kmodules.xyz/client-go v0.30.9-0.20240624102451-7ed2c992c3e1
 	kmodules.xyz/custom-resources v0.30.0
-	kubedb.dev/apimachinery v0.46.1-0.20240626140711-30cf00a2f4db
+	kubedb.dev/apimachinery v0.46.1-0.20240703091558-01fcb66832d9
 )
 
 require (
@@ -83,12 +83,12 @@ require (
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	gomodules.xyz/encoding v0.0.8 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
@@ -112,7 +112,7 @@ require (
 	kmodules.xyz/prober v0.29.0 // indirect
 	kmodules.xyz/resource-metadata v0.18.9 // indirect
 	kubeops.dev/petset v0.0.6 // indirect
-	kubestash.dev/apimachinery v0.9.0 // indirect
+	kubestash.dev/apimachinery v0.10.0 // indirect
 	sigs.k8s.io/controller-runtime v0.18.4 // indirect
 	sigs.k8s.io/gateway-api v1.1.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

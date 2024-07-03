@@ -194,7 +194,7 @@ func (m MariaDB) PrimaryServiceDNS() string {
 	return fmt.Sprintf("%s.%s.svc", m.ServiceName(), m.Namespace)
 }
 
-func (m *MariaDB) SetDefaults(mdVersion *v1alpha1.MariaDBVersion, topology *core_util.Topology) {
+func (m *MariaDB) SetDefaults(mdVersion *v1alpha1.MariaDBVersion) {
 	if m == nil {
 		return
 	}
@@ -202,8 +202,8 @@ func (m *MariaDB) SetDefaults(mdVersion *v1alpha1.MariaDBVersion, topology *core
 	if m.Spec.StorageType == "" {
 		m.Spec.StorageType = StorageTypeDurable
 	}
-	if m.Spec.TerminationPolicy == "" {
-		m.Spec.TerminationPolicy = TerminationPolicyDelete
+	if m.Spec.DeletionPolicy == "" {
+		m.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if m.Spec.Replicas == nil {
@@ -253,7 +253,7 @@ func (m *MariaDB) setDefaultContainerSecurityContext(mdVersion *v1alpha1.MariaDB
 	m.assignDefaultContainerSecurityContext(mdVersion, dbContainer.SecurityContext)
 	podTemplate.Spec.Containers = core_util.UpsertContainer(podTemplate.Spec.Containers, *dbContainer)
 
-	initContainer := core_util.GetContainerByName(podTemplate.Spec.Containers, kubedb.MariaDBInitContainerName)
+	initContainer := core_util.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.MariaDBInitContainerName)
 	if initContainer == nil {
 		initContainer = &core.Container{
 			Name: kubedb.MariaDBInitContainerName,
@@ -263,7 +263,7 @@ func (m *MariaDB) setDefaultContainerSecurityContext(mdVersion *v1alpha1.MariaDB
 		initContainer.SecurityContext = &core.SecurityContext{}
 	}
 	m.assignDefaultContainerSecurityContext(mdVersion, initContainer.SecurityContext)
-	podTemplate.Spec.Containers = core_util.UpsertContainer(podTemplate.Spec.Containers, *initContainer)
+	podTemplate.Spec.InitContainers = core_util.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 
 	if m.IsCluster() {
 		coordinatorContainer := core_util.GetContainerByName(podTemplate.Spec.Containers, kubedb.MariaDBCoordinatorContainerName)

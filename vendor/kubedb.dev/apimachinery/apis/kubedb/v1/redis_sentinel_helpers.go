@@ -181,7 +181,7 @@ func (rs RedisSentinel) StatsServiceLabels() map[string]string {
 	return rs.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
-func (rs *RedisSentinel) SetDefaults(rdVersion *catalog.RedisVersion, topology *core_util.Topology) {
+func (rs *RedisSentinel) SetDefaults(rdVersion *catalog.RedisVersion) {
 	if rs == nil {
 		return
 	}
@@ -189,8 +189,8 @@ func (rs *RedisSentinel) SetDefaults(rdVersion *catalog.RedisVersion, topology *
 	if rs.Spec.StorageType == "" {
 		rs.Spec.StorageType = StorageTypeDurable
 	}
-	if rs.Spec.TerminationPolicy == "" {
-		rs.Spec.TerminationPolicy = TerminationPolicyDelete
+	if rs.Spec.DeletionPolicy == "" {
+		rs.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	rs.setDefaultContainerSecurityContext(rdVersion, &rs.Spec.PodTemplate)

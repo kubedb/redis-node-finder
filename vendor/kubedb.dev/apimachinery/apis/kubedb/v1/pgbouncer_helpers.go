@@ -35,6 +35,7 @@ import (
 	meta_util "kmodules.xyz/client-go/meta"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
+	ofstv2 "kmodules.xyz/offshoot-api/api/v2"
 	pslister "kubeops.dev/petset/client/listers/apps/v1"
 )
 
@@ -194,8 +195,8 @@ func (p *PgBouncer) SetDefaults(pgBouncerVersion *catalog.PgBouncerVersion, uses
 		return
 	}
 
-	if p.Spec.TerminationPolicy == "" {
-		p.Spec.TerminationPolicy = PgBouncerTerminationPolicyDelete
+	if p.Spec.DeletionPolicy == "" {
+		p.Spec.DeletionPolicy = PgBouncerDeletionPolicyDelete
 	}
 
 	p.setConnectionPoolConfigDefaults()
@@ -209,6 +210,8 @@ func (p *PgBouncer) SetDefaults(pgBouncerVersion *catalog.PgBouncerVersion, uses
 			p.Spec.SSLMode = PgBouncerSSLModeDisable
 		}
 	}
+
+	p.setPgBouncerContainerDefaults(&p.Spec.PodTemplate)
 
 	p.SetSecurityContext(pgBouncerVersion)
 	if p.Spec.TLS != nil {
@@ -227,6 +230,20 @@ func (p *PgBouncer) SetDefaults(pgBouncerVersion *catalog.PgBouncerVersion, uses
 	dbContainer := core_util.GetContainerByName(p.Spec.PodTemplate.Spec.Containers, ResourceSingularPgBouncer)
 	if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
 		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResourcesMemoryIntensive)
+	}
+}
+
+func (p *PgBouncer) setPgBouncerContainerDefaults(podTemplate *ofstv2.PodTemplateSpec) {
+	if podTemplate == nil {
+		return
+	}
+	container := EnsureContainerExists(podTemplate, kubedb.PgBouncerContainerName)
+	p.setContainerDefaultResources(container, *kubedb.DefaultResources.DeepCopy())
+}
+
+func (p *PgBouncer) setContainerDefaultResources(container *core.Container, defaultResources core.ResourceRequirements) {
+	if container.Resources.Requests == nil && container.Resources.Limits == nil {
+		apis.SetDefaultResourceLimits(&container.Resources, defaultResources)
 	}
 }
 

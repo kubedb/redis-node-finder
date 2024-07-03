@@ -257,15 +257,15 @@ func (m *MySQL) IsSemiSync() bool {
 		*m.Spec.Topology.Mode == MySQLModeSemiSync
 }
 
-func (m *MySQL) SetDefaults(myVersion *v1alpha1.MySQLVersion, topology *core_util.Topology) {
+func (m *MySQL) SetDefaults(myVersion *v1alpha1.MySQLVersion) {
 	if m == nil {
 		return
 	}
 	if m.Spec.StorageType == "" {
 		m.Spec.StorageType = StorageTypeDurable
 	}
-	if m.Spec.TerminationPolicy == "" {
-		m.Spec.TerminationPolicy = TerminationPolicyDelete
+	if m.Spec.DeletionPolicy == "" {
+		m.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if m.UsesGroupReplication() || m.IsInnoDBCluster() || m.IsSemiSync() {

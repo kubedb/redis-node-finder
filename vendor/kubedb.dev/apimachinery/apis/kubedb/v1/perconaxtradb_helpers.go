@@ -208,7 +208,7 @@ func (p PerconaXtraDB) PrimaryServiceDNS() string {
 	return fmt.Sprintf("%s.%s.svc", p.ServiceName(), p.Namespace)
 }
 
-func (p *PerconaXtraDB) SetDefaults(pVersion *v1alpha1.PerconaXtraDBVersion, topology *core_util.Topology) {
+func (p *PerconaXtraDB) SetDefaults(pVersion *v1alpha1.PerconaXtraDBVersion) {
 	if p == nil {
 		return
 	}
@@ -220,8 +220,8 @@ func (p *PerconaXtraDB) SetDefaults(pVersion *v1alpha1.PerconaXtraDBVersion, top
 	if p.Spec.StorageType == "" {
 		p.Spec.StorageType = StorageTypeDurable
 	}
-	if p.Spec.TerminationPolicy == "" {
-		p.Spec.TerminationPolicy = TerminationPolicyDelete
+	if p.Spec.DeletionPolicy == "" {
+		p.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if p.Spec.PodTemplate.Spec.ServiceAccountName == "" {
@@ -268,7 +268,7 @@ func (p *PerconaXtraDB) setDefaultContainerSecurityContext(pVersion *v1alpha1.Pe
 	p.assignDefaultContainerSecurityContext(pVersion, dbContainer.SecurityContext)
 	podTemplate.Spec.Containers = core_util.UpsertContainer(podTemplate.Spec.Containers, *dbContainer)
 
-	initContainer := core_util.GetContainerByName(podTemplate.Spec.Containers, kubedb.PerconaXtraDBInitContainerName)
+	initContainer := core_util.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.PerconaXtraDBInitContainerName)
 	if initContainer == nil {
 		initContainer = &core.Container{
 			Name: kubedb.PerconaXtraDBInitContainerName,
@@ -278,7 +278,7 @@ func (p *PerconaXtraDB) setDefaultContainerSecurityContext(pVersion *v1alpha1.Pe
 		initContainer.SecurityContext = &core.SecurityContext{}
 	}
 	p.assignDefaultContainerSecurityContext(pVersion, initContainer.SecurityContext)
-	podTemplate.Spec.Containers = core_util.UpsertContainer(podTemplate.Spec.Containers, *initContainer)
+	podTemplate.Spec.InitContainers = core_util.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
 
 	coordinatorContainer := core_util.GetContainerByName(podTemplate.Spec.Containers, kubedb.PerconaXtraDBCoordinatorContainerName)
 	if coordinatorContainer == nil {

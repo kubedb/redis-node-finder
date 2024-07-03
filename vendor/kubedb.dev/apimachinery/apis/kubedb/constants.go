@@ -129,7 +129,12 @@ const (
 	MemcachedDatabasePort           = 11211
 	MemcachedShardKey               = MemcachedKey + "/shard"
 	MemcachedContainerName          = "memcached"
-	MemcachedConfigVolumePath       = "/etc/memcached/"
+
+	MemcachedConfigVolumeName = "memcached-config"
+	MemcachedConfigVolumePath = "/etc/memcached/"
+
+	MemcachedDataVolumeName = "data"
+	MemcachedDataVolumePath = "/data"
 	// =========================== MongoDB Constants ============================
 
 	MongoDBDatabasePortName       = "db"
@@ -682,6 +687,8 @@ const (
 	DatabaseReadAccess = "DatabaseReadAccess"
 	// user for databases that have write access
 	DatabaseWriteAccess = "DatabaseWriteAccess"
+	// check dependencies are ready
+	DatabaseDependencyReady = "DatabaseDependencyReady"
 
 	// Condition reasons
 	DataRestoreStartedByExternalInitializer    = "DataRestoreStartedByExternalInitializer"
@@ -703,6 +710,7 @@ const (
 	DatabaseWriteAccessCheckFailed             = "DatabaseWriteAccessCheckFailed"
 	InternalUsersCredentialSyncFailed          = "InternalUsersCredentialsSyncFailed"
 	InternalUsersCredentialsSyncedSuccessfully = "InternalUsersCredentialsSyncedSuccessfully"
+	FailedToEnsureDependency                   = "FailedToEnsureDependency"
 )
 
 const (
@@ -934,10 +942,12 @@ const (
 	DruidVolumeOperatorConfig = "operator-config-volume"
 	DruidVolumeMainConfig     = "main-config-volume"
 	DruidVolumeCustomConfig   = "custom-config"
+	DruidMetadataTLSVolume    = "metadata-tls-volume"
 
-	DruidOperatorConfigDir = "/tmp/config/operator-config"
-	DruidMainConfigDir     = "/opt/druid/conf"
-	DruidCustomConfigDir   = "/tmp/config/custom-config"
+	DruidOperatorConfigDir    = "/tmp/config/operator-config"
+	DruidMainConfigDir        = "/opt/druid/conf"
+	DruidCustomConfigDir      = "/tmp/config/custom-config"
+	DruidMetadataTLSConfigDir = "/tmp/metadata-tls"
 
 	DruidVolumeCommonConfig          = "common-config-volume"
 	DruidCommonConfigFile            = "common.runtime.properties"
@@ -961,6 +971,8 @@ const (
 	EnvDruidMetdataStoragePassword = "DRUID_METADATA_STORAGE_PASSWORD"
 	EnvDruidZKServicePassword      = "DRUID_ZK_SERVICE_PASSWORD"
 	EnvDruidCoordinatorAsOverlord  = "DRUID_COORDINATOR_AS_OVERLORD"
+	EnvDruidMetadataTLSEnable      = "DRUID_METADATA_TLS_ENABLE"
+	EnvDruidMetadataStorageType    = "DRUID_METADATA_STORAGE_TYPE"
 
 	DruidPortCoordinators   = 8081
 	DruidPortOverlords      = 8090
@@ -971,7 +983,7 @@ const (
 	DruidExporterPort       = 9104
 
 	// Common Runtime Configurations Properties
-	// ZooKeeperSpec
+	// ZooKeeper
 	DruidZKServiceHost              = "druid.zk.service.host"
 	DruidZKPathsBase                = "druid.zk.paths.base"
 	DruidZKServiceCompress          = "druid.zk.service.compress"
@@ -988,6 +1000,25 @@ const (
 	DruidMetadataStorageConnectorPassword          = "druid.metadata.storage.connector.password"
 	DruidMetadataStorageConnectorPasswordEnvConfig = "{\"type\": \"environment\", \"variable\": \"DRUID_METADATA_STORAGE_PASSWORD\"}"
 	DruidMetadataStorageCreateTables               = "druid.metadata.storage.connector.createTables"
+
+	// MySQL TLS
+	DruidMetadataMySQLUseSSL                          = "druid.metadata.mysql.ssl.useSSL"
+	DruidMetadataMySQLClientCertKeyStoreURL           = "druid.metadata.mysql.ssl.clientCertificateKeyStoreUrl"
+	DruidMetadataMySQLClientCertKeyStorePath          = "/opt/druid/conf/tls/metadatakeystore.jks"
+	DruidMetadataMySQLClientCertKeyStoreType          = "druid.metadata.mysql.ssl.clientCertificateKeyStoreType"
+	DruidMetadataMySQLClientCertKeyStoreTypeJKS       = "JKS"
+	DruidMetadataMySQLClientCertKeyStorePassword      = "druid.metadata.mysql.ssl.clientCertificateKeyStorePassword"
+	DruidMetadataMySQLClientCertKeyStorePasswordValue = "password"
+
+	// Postgres TLS
+	DruidMetadataPostgresUseSSL    = "druid.metadata.postgres.ssl.useSSL"
+	DruidMetadataPGUseSSLMode      = "druid.metadata.postgres.ssl.sslMode"
+	DruidMetadataPGSSLCert         = "druid.metadata.postgres.ssl.sslCert"
+	DruidMetadataPGSSLCertPath     = "/opt/druid/conf/tls/tls.crt"
+	DruidMetadataPGSSLKey          = "druid.metadata.postgres.ssl.sslKey"
+	DruidMetadataPGSSLKeyPath      = "/opt/druid/conf/tls/tls.key"
+	DruidMetadataPGSSLRootCert     = "druid.metadata.postgres.ssl.sslRootCert"
+	DruidMetadataPGSSLRootCertPath = "/opt/druid/conf/tls/ca.cert"
 
 	// Deep Storage
 	DruidDeepStorageTypeKey      = "druid.storage.type"
@@ -1228,11 +1259,14 @@ const (
 
 	FerretDBServerPath = "/etc/certs/server"
 
+	FerretDBExternalClientPath = "/etc/certs/ext"
+
 	FerretDBDefaultPort = 27017
 	FerretDBMetricsPort = 8080
 	FerretDBTLSPort     = 27018
 
-	FerretDBMetricsPath = "/debug/metrics"
+	FerretDBMetricsPath     = "/debug/metrics"
+	FerretDBMetricsPortName = "metrics"
 )
 
 // =========================== ClickHouse Constants ============================

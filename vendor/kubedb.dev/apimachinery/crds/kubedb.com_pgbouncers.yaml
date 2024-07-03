@@ -75,7 +75,7 @@ spec:
                     default: md5
                     enum:
                     - md5
-                    - scram
+                    - scram-sha-256
                     - cert
                     type: string
                   defaultPoolSize:
@@ -145,6 +145,12 @@ spec:
                 - databaseName
                 - databaseRef
                 type: object
+              deletionPolicy:
+                enum:
+                - Delete
+                - WipeOut
+                - DoNotTerminate
+                type: string
               healthChecker:
                 default:
                   failureThreshold: 1
@@ -3513,12 +3519,6 @@ spec:
                 - verify-ca
                 - verify-full
                 type: string
-              terminationPolicy:
-                enum:
-                - Delete
-                - WipeOut
-                - DoNotTerminate
-                type: string
               tls:
                 properties:
                   certificates:
@@ -3801,7 +3801,7 @@ spec:
                     default: md5
                     enum:
                     - md5
-                    - scram
+                    - scram-sha-256
                     - cert
                     type: string
                   defaultPoolSize:

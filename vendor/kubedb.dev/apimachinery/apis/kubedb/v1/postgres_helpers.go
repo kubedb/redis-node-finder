@@ -36,7 +36,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
-	core_util "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/policy/secomp"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
@@ -186,7 +185,7 @@ func (p Postgres) StatsServiceLabels() map[string]string {
 	return p.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
-func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topology *core_util.Topology) {
+func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion) {
 	if p == nil {
 		return
 	}
@@ -194,8 +193,8 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion, topolog
 	if p.Spec.StorageType == "" {
 		p.Spec.StorageType = StorageTypeDurable
 	}
-	if p.Spec.TerminationPolicy == "" {
-		p.Spec.TerminationPolicy = TerminationPolicyDelete
+	if p.Spec.DeletionPolicy == "" {
+		p.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if p.Spec.LeaderElection == nil {
