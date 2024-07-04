@@ -62,7 +62,7 @@ func New(sentinelFile string) *SentinelReplicaFinderFinder {
 // The init script then use those value to provision the db object with right configuration and the init
 // script also has updated information during pod restart
 func (r *SentinelReplicaFinderFinder) RunSentinelReplicaFinder() {
-	db, err := r.dbClient.KubedbV1alpha2().RedisSentinels(r.Namespace).Get(context.TODO(), r.sentinelDBName, metav1.GetOptions{})
+	db, err := r.dbClient.KubedbV1().RedisSentinels(r.Namespace).Get(context.TODO(), r.sentinelDBName, metav1.GetOptions{})
 	if err != nil {
 		klog.Fatalln(err)
 		return
