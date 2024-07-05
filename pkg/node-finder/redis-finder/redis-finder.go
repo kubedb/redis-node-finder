@@ -82,7 +82,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dbReplicaCount := int(*db.Spec.Cluster.Replicas)
 
 	r.writeInfoToFile(r.masterFile, dbShardCount)
-	r.writeInfoToFile(r.slaveFile, dbReplicaCount)
+	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
 	var redisNodes []string
 	for shardNo := 0; shardNo < dbShardCount; shardNo++ {
