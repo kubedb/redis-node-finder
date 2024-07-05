@@ -793,7 +793,7 @@ kmodules.xyz/prober/api/v1
 kmodules.xyz/resource-metadata/apis/node
 kmodules.xyz/resource-metadata/apis/node/v1alpha1
 kmodules.xyz/resource-metadata/crds
-# kubedb.dev/apimachinery v0.47.0-rc.0.0.20240704102728-d3744bc4b140
+# kubedb.dev/apimachinery v0.47.0-rc.0.0.20240705093316-3b5044566fdb
 ## explicit; go 1.22.1
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/archiver/v1alpha1
