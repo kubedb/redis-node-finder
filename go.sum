@@ -592,10 +592,10 @@ kmodules.xyz/offshoot-api v0.29.4 h1:WQV2BIUIoVKKiqZNmZ4gAy367jEdwBhEl3dFCLZM1qA
 kmodules.xyz/offshoot-api v0.29.4/go.mod h1:e+NQ0s4gW/YTPWBWEfdISZcmk+tlTq8IjvP5SLdqvko=
 kmodules.xyz/prober v0.29.0 h1:Ex7m4F9rH7uWNNJlLgP63ROOM+nUATJkC2L5OQ7nwMg=
 kmodules.xyz/prober v0.29.0/go.mod h1:UtK+HKyI1lFLEKX+HFLyOCVju6TO93zv3kwGpzqmKOo=
-kmodules.xyz/resource-metadata v0.18.9 h1:W/39Blg0hCvZYl0rReDIPiOMQuMN//pKVqRjhWAUrKo=
-kmodules.xyz/resource-metadata v0.18.9/go.mod h1:qqieeMPdwJIEyAVkGcgh7h9PZbZTLw4KNEkkqEh5EyA=
-kubedb.dev/apimachinery v0.47.0-rc.0.0.20240705093316-3b5044566fdb h1:Os9W5ePqU0SwJjKlfPKnVQ06abio/ip9a1tcBcocJr0=
-kubedb.dev/apimachinery v0.47.0-rc.0.0.20240705093316-3b5044566fdb/go.mod h1:2mEFBi2aURLGNbMefYC7xUalF/JWK7a1RA0zWNDCdw8=
+kmodules.xyz/resource-metadata v0.18.10 h1:B0DAMsJJBuSOGCKzptZvB8AWcbxzDdUm+3CIE7g9ftE=
+kmodules.xyz/resource-metadata v0.18.10/go.mod h1:PXyZXif1b1QRpe0Pwr92OeOveptZricB0jLssCjsYTc=
+kubedb.dev/apimachinery v0.47.0-rc.0.0.20240709083909-6eecffe448fb h1:ux9KZ54n4Ju4m+shsFyHJIBadK7EQG8LWUdpCvd3DUE=
+kubedb.dev/apimachinery v0.47.0-rc.0.0.20240709083909-6eecffe448fb/go.mod h1:ZUYhEuFYC0URg0/vNF8CCKxTrv91B9KuxwMREz2enko=
 kubeops.dev/petset v0.0.6 h1:0IbvxD9fadZfH+3iMZWzN6ZHsO0vX458JlioamwyPKQ=
 kubeops.dev/petset v0.0.6/go.mod h1:A15vh0r979NsvL65DTIZKWsa/NoX9VapHBAEw1ZsdYI=
 kubestash.dev/apimachinery v0.10.0 h1:38rSSEojixDvmsugS2YPGg7IFahKhPP02Hz9m9hrtQ8=
