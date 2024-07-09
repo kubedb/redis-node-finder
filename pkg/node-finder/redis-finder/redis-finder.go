@@ -68,27 +68,27 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	}
 }
 
-// RunRedisNodeFinder  get Redis DB  object and extract master/replica count, and initial master nodes name and write them to given
+// RunRedisNodeFinder  get Redis DB  object and extract shard/replica count, and initial master nodes name and write them to given
 // file name in /tmp directory. The call is made from init script, so it will write to tmp/ directory
 // The init script then use those value to provision the db object with right configuration and the init
 // script also has updated information during pod restart
 func (r *RedisdNodeFinder) RunRedisNodeFinder() {
-	db, err := r.dbClient.KubedbV1alpha2().Redises(r.Namespace).Get(context.TODO(), r.RedisName, metav1.GetOptions{})
+	db, err := r.dbClient.KubedbV1().Redises(r.Namespace).Get(context.TODO(), r.RedisName, metav1.GetOptions{})
 	if err != nil {
 		klog.Fatalln(err)
 		return
 	}
-	dbMasterCount := int(*db.Spec.Cluster.Master)
+	dbShardCount := int(*db.Spec.Cluster.Shards)
 	dbReplicaCount := int(*db.Spec.Cluster.Replicas)
 
-	r.writeInfoToFile(r.masterFile, dbMasterCount)
-	r.writeInfoToFile(r.slaveFile, dbReplicaCount)
+	r.writeInfoToFile(r.masterFile, dbShardCount)
+	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
 	var redisNodes []string
-	for shardNo := 0; shardNo < dbMasterCount; shardNo++ {
+	for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 
-		for podNo := 0; podNo <= dbReplicaCount; podNo++ {
+		for podNo := 0; podNo < dbReplicaCount; podNo++ {
 			podName := fmt.Sprintf("%s-%d", shardName, podNo)
 			dnsName := podName + "." + r.dbGoverningServiceName
 			redisNodes = append(redisNodes, dnsName)
@@ -97,7 +97,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writePodDNSToFile(r.redisNodesFile, redisNodes)
 
 	var masterNodes []string
-	for shardNO := 0; shardNO < dbMasterCount; shardNO++ {
+	for shardNO := 0; shardNO < dbShardCount; shardNO++ {
 		initialMasterPod := fmt.Sprintf("%s-shard%d-0", r.RedisName, shardNO)
 		dnsName := initialMasterPod + "." + r.dbGoverningServiceName
 		masterNodes = append(masterNodes, dnsName)

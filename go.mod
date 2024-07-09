@@ -10,12 +10,12 @@ require (
 	gomodules.xyz/flags v0.1.3
 	gomodules.xyz/runtime v0.3.0
 	gomodules.xyz/x v0.0.17
-	k8s.io/apimachinery v0.30.1
-	k8s.io/client-go v0.30.1
-	k8s.io/klog/v2 v2.120.1
-	kmodules.xyz/client-go v0.30.9-0.20240624102451-7ed2c992c3e1
+	k8s.io/apimachinery v0.30.2
+	k8s.io/client-go v0.30.2
+	k8s.io/klog/v2 v2.130.1
+	kmodules.xyz/client-go v0.30.9
 	kmodules.xyz/custom-resources v0.30.0
-	kubedb.dev/apimachinery v0.46.1-0.20240703091558-01fcb66832d9
+	kubedb.dev/apimachinery v0.47.0-rc.0.0.20240709094513-f8063159adec
 )
 
 require (
@@ -25,18 +25,18 @@ require (
 	github.com/PuerkitoBio/purell v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/cert-manager/cert-manager v1.15.0 // indirect
+	github.com/cert-manager/cert-manager v1.15.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.12.1 // indirect
 	github.com/evanphx/json-patch v5.9.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
@@ -69,7 +69,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.74.0 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.75.1 // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.46.0 // indirect
@@ -84,7 +84,7 @@ require (
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/oauth2 v0.20.0 // indirect
+	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/term v0.21.0 // indirect
@@ -95,22 +95,22 @@ require (
 	gomodules.xyz/mergo v0.3.13 // indirect
 	gomodules.xyz/pointer v0.1.0 // indirect
 	gomodules.xyz/sets v0.2.1 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.30.1 // indirect
-	k8s.io/apiextensions-apiserver v0.30.1 // indirect
+	k8s.io/api v0.30.2 // indirect
+	k8s.io/apiextensions-apiserver v0.30.2 // indirect
 	k8s.io/cli-runtime v0.30.1 // indirect
-	k8s.io/component-base v0.30.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20240521193020-835d969ad83a // indirect
+	k8s.io/component-base v0.30.2 // indirect
+	k8s.io/kube-openapi v0.0.0-20240620174524-b456828f718b // indirect
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0 // indirect
 	kmodules.xyz/apiversion v0.2.0 // indirect
 	kmodules.xyz/monitoring-agent-api v0.29.0 // indirect
 	kmodules.xyz/objectstore-api v0.29.1 // indirect
-	kmodules.xyz/offshoot-api v0.29.4 // indirect
+	kmodules.xyz/offshoot-api v0.29.5-0.20240705043904-bb118b293ce9 // indirect
 	kmodules.xyz/prober v0.29.0 // indirect
-	kmodules.xyz/resource-metadata v0.18.9 // indirect
+	kmodules.xyz/resource-metadata v0.18.10 // indirect
 	kubeops.dev/petset v0.0.6 // indirect
 	kubestash.dev/apimachinery v0.10.0 // indirect
 	sigs.k8s.io/controller-runtime v0.18.4 // indirect
