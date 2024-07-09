@@ -15,7 +15,7 @@ require (
 	k8s.io/klog/v2 v2.130.1
 	kmodules.xyz/client-go v0.30.9
 	kmodules.xyz/custom-resources v0.30.0
-	kubedb.dev/apimachinery v0.47.0-rc.0.0.20240709083909-6eecffe448fb
+	kubedb.dev/apimachinery v0.47.0-rc.0.0.20240709094513-f8063159adec
 )
 
 require (
@@ -108,7 +108,7 @@ require (
 	kmodules.xyz/apiversion v0.2.0 // indirect
 	kmodules.xyz/monitoring-agent-api v0.29.0 // indirect
 	kmodules.xyz/objectstore-api v0.29.1 // indirect
-	kmodules.xyz/offshoot-api v0.29.4 // indirect
+	kmodules.xyz/offshoot-api v0.29.5-0.20240705043904-bb118b293ce9 // indirect
 	kmodules.xyz/prober v0.29.0 // indirect
 	kmodules.xyz/resource-metadata v0.18.10 // indirect
 	kubeops.dev/petset v0.0.6 // indirect
