@@ -27,7 +27,7 @@ jobs:
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
 
       - name: Prepare git
         env:
