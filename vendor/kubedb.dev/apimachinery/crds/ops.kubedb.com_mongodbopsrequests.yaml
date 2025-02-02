@@ -9,7 +9,7 @@ spec:
   group: ops.kubedb.com
   names:
     categories:
-    - datastore
+    - ops
     - kubedb
     - appscode
     kind: MongoDBOpsRequest
@@ -67,6 +67,16 @@ spec:
                 required:
                 - operation
                 - ref
+                type: object
+              authentication:
+                properties:
+                  secretRef:
+                    properties:
+                      name:
+                        default: ""
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
                 type: object
               configuration:
                 properties:
@@ -357,6 +367,7 @@ spec:
                 - Reconfigure
                 - ReconfigureTLS
                 - Reprovision
+                - RotateAuth
                 type: string
               updateVersion:
                 properties:

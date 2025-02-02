@@ -37,7 +37,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=redisopsrequests,singular=redisopsrequest,shortName=rdops,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=redisopsrequests,singular=redisopsrequest,shortName=rdops,categories={ops,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -67,6 +67,8 @@ type RedisOpsRequestSpec struct {
 	Configuration *RedisCustomConfigurationSpec `json:"configuration,omitempty"`
 	// Specifies information necessary for configuring TLS
 	TLS *RedisTLSSpec `json:"tls,omitempty"`
+	// Specifies information necessary for configuring authSecret of the database
+	Authentication *AuthSpec `json:"authentication,omitempty"`
 	// Specifies information necessary for restarting database
 	Restart *RestartSpec `json:"restart,omitempty"`
 	// Specifies information necessary for replacing sentinel instances
@@ -78,8 +80,8 @@ type RedisOpsRequestSpec struct {
 	Apply ApplyOption `json:"apply,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;VolumeExpansion;Restart;Reconfigure;ReconfigureTLS;ReplaceSentinel
-// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, VolumeExpansion, Restart, Reconfigure, ReconfigureTLS, ReplaceSentinel)
+// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;VolumeExpansion;Restart;Reconfigure;ReconfigureTLS;ReplaceSentinel;RotateAuth
+// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, VolumeExpansion, Restart, Reconfigure, ReconfigureTLS, ReplaceSentinel, RotateAuth)
 type RedisOpsRequestType string
 
 type RedisTLSSpec struct {
@@ -118,9 +120,9 @@ type RedisUpdateVersionSpec struct {
 }
 
 type RedisHorizontalScalingSpec struct {
-	// Number of Masters in the cluster
-	Master *int32 `json:"master,omitempty"`
-	// specifies the number of replica for the master
+	// Number of shards in the cluster
+	Shards *int32 `json:"shards,omitempty"`
+	// specifies the number of replica of the shards
 	Replicas *int32 `json:"replicas,omitempty"`
 }
 

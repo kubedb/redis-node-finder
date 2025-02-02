@@ -63,8 +63,8 @@ func (b *BackupSession) CalculatePhase() BackupSessionPhase {
 			b.failedToExecutePreBackupHooks() ||
 			b.failedToExecutePostBackupHooks() ||
 			b.failedToApplyRetentionPolicy() ||
-			b.verificationsFailed() ||
-			b.sessionHistoryCleanupFailed()) {
+			b.sessionHistoryCleanupFailed() ||
+			b.snapshotCleanupIncomplete()) {
 		return BackupSessionFailed
 	}
 
@@ -74,6 +74,10 @@ func (b *BackupSession) CalculatePhase() BackupSessionPhase {
 	}
 
 	return BackupSessionRunning
+}
+
+func (b *BackupSession) snapshotCleanupIncomplete() bool {
+	return cutil.IsConditionTrue(b.Status.Conditions, TypeSnapshotCleanupIncomplete)
 }
 
 func (b *BackupSession) sessionHistoryCleanupFailed() bool {
@@ -103,16 +107,6 @@ func (b *BackupSession) failedToExecutePostBackupHooks() bool {
 func (b *BackupSession) failedToApplyRetentionPolicy() bool {
 	for _, status := range b.Status.RetentionPolicies {
 		if status.Phase == RetentionPolicyFailedToApply {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (b *BackupSession) verificationsFailed() bool {
-	for _, v := range b.Status.Verifications {
-		if v.Phase == VerificationFailed {
 			return true
 		}
 	}
@@ -242,4 +236,15 @@ func (b *BackupSession) checkFailureInRetentionPolicy() (bool, string) {
 		}
 	}
 	return false, ""
+}
+
+func (b *BackupSession) GetRemainingTimeoutDuration() (*metav1.Duration, error) {
+	if b.Spec.BackupTimeout == nil || b.Status.BackupDeadline == nil {
+		return nil, nil
+	}
+	currentTime := metav1.Now()
+	if b.Status.BackupDeadline.Before(&currentTime) {
+		return nil, fmt.Errorf("deadline exceeded")
+	}
+	return &metav1.Duration{Duration: b.Status.BackupDeadline.Sub(currentTime.Time)}, nil
 }

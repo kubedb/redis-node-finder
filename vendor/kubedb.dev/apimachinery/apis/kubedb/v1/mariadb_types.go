@@ -31,6 +31,14 @@ const (
 	ResourcePluralMariaDB   = "mariadbs"
 )
 
+// +kubebuilder:validation:Enum=MariaDBReplication;GaleraCluster
+type MariaDBMode string
+
+const (
+	MariaDBModeReplication   MariaDBMode = "MariaDBReplication"
+	MariaDBModeGaleraCluster MariaDBMode = "GaleraCluster"
+)
+
 // MariaDB defines a MariaDB database.
 
 // +genclient
@@ -61,6 +69,9 @@ type MariaDBSpec struct {
 
 	// Number of instances to deploy for a MariaDB database.
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// MariaDB cluster topology
+	Topology *MariaDBTopology `json:"topology,omitempty"`
 
 	// StorageType can be durable (default) or ephemeral
 	StorageType StorageType `json:"storageType,omitempty"`
@@ -162,8 +173,6 @@ type MariaDBStatus struct {
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
 	// +optional
 	AuthSecret *Age `json:"authSecret,omitempty"`
-	// +optional
-	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -173,4 +182,29 @@ type MariaDBList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of MariaDB TPR objects
 	Items []MariaDB `json:"items,omitempty"`
+}
+
+type MariaDBTopology struct {
+	// If set to -
+	// mode of the topology, possible values MariaDBReplication,GaleraCluster.
+	// Must be set for topology set up
+	Mode *MariaDBMode `json:"mode,omitempty"`
+	// must set for MariaDBReplication mode
+	// +optional
+	MaxScale *MaxScaleSpec `json:"maxscale,omitempty"`
+}
+
+type MaxScaleSpec struct {
+	// Number of instances to deploy for a MariaDB database.
+	Replicas *int32 `json:"replicas,omitempty"`
+	// PodTemplate is an optional configuration for pods used to expose database
+	// +optional
+	PodTemplate ofstv2.PodTemplateSpec `json:"podTemplate,omitempty"`
+	// Storage spec to specify how storage shall be used.
+	Storage *core.PersistentVolumeClaimSpec `json:"storage,omitempty"`
+	// StorageType can be durable (default) or ephemeral
+	StorageType StorageType `json:"storageType,omitempty"`
+	// enable/disable MaxscaleUI
+	// +optional
+	EnableUI *bool `json:"enableUI,omitempty"`
 }

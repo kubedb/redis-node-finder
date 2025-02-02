@@ -18,13 +18,21 @@ limitations under the License.
 
 package v1alpha1
 
+type CassandraAutoscalerExpansion interface{}
+
+type ClickHouseAutoscalerExpansion interface{}
+
 type DruidAutoscalerExpansion interface{}
 
 type ElasticsearchAutoscalerExpansion interface{}
 
 type EtcdAutoscalerExpansion interface{}
 
+type FerretDBAutoscalerExpansion interface{}
+
 type KafkaAutoscalerExpansion interface{}
+
+type MSSQLServerAutoscalerExpansion interface{}
 
 type MariaDBAutoscalerExpansion interface{}
 
@@ -51,3 +59,7 @@ type RedisAutoscalerExpansion interface{}
 type RedisSentinelAutoscalerExpansion interface{}
 
 type SinglestoreAutoscalerExpansion interface{}
+
+type SolrAutoscalerExpansion interface{}
+
+type ZooKeeperAutoscalerExpansion interface{}

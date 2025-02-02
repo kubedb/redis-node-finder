@@ -31,7 +31,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"sync"
 )
 
 // log is for logging in this package.
@@ -203,11 +202,6 @@ func (b *BackupConfiguration) ValidateCreate() (admission.Warnings, error) {
 
 	return nil, b.validateHookTemplatesAgainstUsagePolicy(context.Background(), c)
 }
-
-var (
-	rc   client.Client
-	once sync.Once
-)
 
 func (b *BackupConfiguration) validateBackends() error {
 	if len(b.Spec.Backends) == 0 {
@@ -416,6 +410,9 @@ func (b *BackupConfiguration) validateRepoDirExistence(ctx context.Context, c cl
 }
 
 func storageRefMatched(b1, b2 *kmapi.ObjectReference) bool {
+	if b1 == nil || b2 == nil {
+		return false
+	}
 	return b1.Name == b2.Name && b1.Namespace == b2.Namespace
 }
 

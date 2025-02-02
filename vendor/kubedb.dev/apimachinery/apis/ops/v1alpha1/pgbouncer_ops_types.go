@@ -18,6 +18,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	dbapi "kubedb.dev/apimachinery/apis/kubedb/v1"
+
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -36,7 +38,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=pgbounceropsrequests,singular=pgbounceropsrequest,shortName=pbops,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=pgbounceropsrequests,singular=pgbounceropsrequest,shortName=pbops,categories={ops,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -51,11 +53,11 @@ type PgBouncerOpsRequest struct {
 // PgBouncerOpsRequestSpec is the spec for PgBouncerOpsRequest
 type PgBouncerOpsRequestSpec struct {
 	// Specifies the PgBouncer reference
-	ServerRef core.LocalObjectReference `json:"serverRef"`
+	DatabaseRef core.LocalObjectReference `json:"databaseRef"`
 	// Specifies the ops request type: Upgrade, HorizontalScaling, VerticalScaling etc.
 	Type PgBouncerOpsRequestType `json:"type"`
 	// Specifies information necessary for upgrading PgBouncer
-	UpdateVersion *PgBouncerUpdateVersionSpec `json:"UpdateVersion,omitempty"`
+	UpdateVersion *PgBouncerUpdateVersionSpec `json:"updateVersion,omitempty"`
 	// Specifies information necessary for horizontal scaling
 	HorizontalScaling *PgBouncerHorizontalScalingSpec `json:"horizontalScaling,omitempty"`
 	// Specifies information necessary for vertical scaling
@@ -63,42 +65,58 @@ type PgBouncerOpsRequestSpec struct {
 	// Specifies information necessary for custom configuration of PgBouncer
 	Configuration *PgBouncerCustomConfigurationSpec `json:"configuration,omitempty"`
 	// Specifies information necessary for configuring TLS
-	TLS *TLSSpec `json:"tls,omitempty"`
+	TLS *PgBouncerTLSSpec `json:"tls,omitempty"`
+	// Specifies information necessary for configuring authSecret of the database
+	Authentication *AuthSpec `json:"authentication,omitempty"`
 	// Specifies information necessary for restarting database
 	Restart *RestartSpec `json:"restart,omitempty"`
+	// Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
 	// ApplyOption is to control the execution of OpsRequest depending on the database state.
 	// +kubebuilder:default="IfReady"
 	Apply ApplyOption `json:"apply,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;Restart;Reconfigure;ReconfigureTLS
-// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, Restart, Reconfigure, ReconfigureTLS)
+// +kubebuilder:validation:Enum=HorizontalScaling;VerticalScaling;UpdateVersion;Reconfigure;RotateAuth;Restart;ReconfigureTLS
+// ENUM(HorizontalScaling, VerticalScaling, UpdateVersion, Reconfigure, RotateAuth, Restart, ReconfigureTLS)
 type PgBouncerOpsRequestType string
-
-// PgBouncerReplicaReadinessCriteria is the criteria for checking readiness of a PgBouncer pod
-// after updating, horizontal scaling etc.
-type PgBouncerReplicaReadinessCriteria struct{}
 
 type PgBouncerUpdateVersionSpec struct {
 	// Specifies the target version name from catalog
-	TargetVersion     string                             `json:"targetVersion,omitempty"`
-	ReadinessCriteria *PgBouncerReplicaReadinessCriteria `json:"readinessCriteria,omitempty"`
+	TargetVersion string `json:"targetVersion,omitempty"`
 }
 
 // HorizontalScaling is the spec for PgBouncer horizontal scaling
-type PgBouncerHorizontalScalingSpec struct{}
+type PgBouncerHorizontalScalingSpec struct {
+	Replicas *int32 `json:"replicas,omitempty"`
+}
 
 // PgBouncerVerticalScalingSpec is the spec for PgBouncer vertical scaling
 type PgBouncerVerticalScalingSpec struct {
-	ReadinessCriteria *PgBouncerReplicaReadinessCriteria `json:"readinessCriteria,omitempty"`
+	PgBouncer *PodResources       `json:"pgbouncer,omitempty"`
+	Exporter  *ContainerResources `json:"exporter,omitempty"`
 }
 
-type PgBouncerCustomConfigurationSpec struct{}
+type PgBouncerCustomConfigurationSpec struct {
+	PgBouncer *PgBouncerCustomConfiguration `json:"pgbouncer"`
+}
 
 type PgBouncerCustomConfiguration struct {
-	ConfigMap *core.LocalObjectReference `json:"configMap,omitempty"`
-	Data      map[string]string          `json:"data,omitempty"`
-	Remove    bool                       `json:"remove,omitempty"`
+	ConfigSecret       *core.LocalObjectReference `json:"configSecret,omitempty"`
+	ApplyConfig        map[string]string          `json:"applyConfig,omitempty"`
+	RemoveCustomConfig bool                       `json:"removeCustomConfig,omitempty"`
+}
+
+type PgBouncerTLSSpec struct {
+	TLSSpec `json:",inline,omitempty"`
+
+	// SSLMode for both standalone and clusters. [disable;allow;prefer;require;verify-ca;verify-full]
+	// +optional
+	SSLMode dbapi.PgBouncerSSLMode `json:"sslMode,omitempty"`
+
+	// ClientAuthMode for sidecar or sharding. (default will be md5. [md5;scram])
+	// +optional
+	ClientAuthMode dbapi.PgBouncerClientAuthMode `json:"clientAuthMode,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

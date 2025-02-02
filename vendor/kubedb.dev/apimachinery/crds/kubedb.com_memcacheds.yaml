@@ -48,6 +48,20 @@ spec:
             type: object
           spec:
             properties:
+              authSecret:
+                properties:
+                  activeFrom:
+                    format: date-time
+                    type: string
+                  externallyManaged:
+                    type: boolean
+                  name:
+                    default: ""
+                    type: string
+                  rotateAfter:
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
               configSecret:
                 properties:
                   name:
@@ -839,6 +853,8 @@ spec:
                 - WipeOut
                 - DoNotTerminate
                 type: string
+              disableAuth:
+                type: boolean
               halted:
                 type: boolean
               healthChecker:
@@ -4333,87 +4349,6 @@ spec:
                   - type
                   type: object
                 type: array
-              gateway:
-                properties:
-                  hostname:
-                    type: string
-                  ip:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                  services:
-                    items:
-                      properties:
-                        alias:
-                          enum:
-                          - primary
-                          - standby
-                          - stats
-                          type: string
-                        ports:
-                          items:
-                            properties:
-                              backendServicePort:
-                                format: int32
-                                type: integer
-                              name:
-                                type: string
-                              nodePort:
-                                format: int32
-                                type: integer
-                              port:
-                                format: int32
-                                type: integer
-                            required:
-                            - port
-                            type: object
-                          type: array
-                      required:
-                      - alias
-                      - ports
-                      type: object
-                    type: array
-                  ui:
-                    items:
-                      properties:
-                        alias:
-                          type: string
-                        helmRelease:
-                          properties:
-                            name:
-                              default: ""
-                              type: string
-                          type: object
-                          x-kubernetes-map-type: atomic
-                        port:
-                          properties:
-                            backendServicePort:
-                              format: int32
-                              type: integer
-                            name:
-                              type: string
-                            nodePort:
-                              format: int32
-                              type: integer
-                            port:
-                              format: int32
-                              type: integer
-                          required:
-                          - port
-                          type: object
-                        url:
-                          type: string
-                      required:
-                      - alias
-                      - url
-                      type: object
-                    type: array
-                required:
-                - name
-                - namespace
-                type: object
               observedGeneration:
                 format: int64
                 type: integer
@@ -8106,6 +8041,8 @@ spec:
                       - primary
                       - standby
                       - stats
+                      - dashboard
+                      - secondary
                       type: string
                     metadata:
                       properties:
@@ -8308,87 +8245,6 @@ spec:
                   - type
                   type: object
                 type: array
-              gateway:
-                properties:
-                  hostname:
-                    type: string
-                  ip:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                  services:
-                    items:
-                      properties:
-                        alias:
-                          enum:
-                          - primary
-                          - standby
-                          - stats
-                          type: string
-                        ports:
-                          items:
-                            properties:
-                              backendServicePort:
-                                format: int32
-                                type: integer
-                              name:
-                                type: string
-                              nodePort:
-                                format: int32
-                                type: integer
-                              port:
-                                format: int32
-                                type: integer
-                            required:
-                            - port
-                            type: object
-                          type: array
-                      required:
-                      - alias
-                      - ports
-                      type: object
-                    type: array
-                  ui:
-                    items:
-                      properties:
-                        alias:
-                          type: string
-                        helmRelease:
-                          properties:
-                            name:
-                              default: ""
-                              type: string
-                          type: object
-                          x-kubernetes-map-type: atomic
-                        port:
-                          properties:
-                            backendServicePort:
-                              format: int32
-                              type: integer
-                            name:
-                              type: string
-                            nodePort:
-                              format: int32
-                              type: integer
-                            port:
-                              format: int32
-                              type: integer
-                          required:
-                          - port
-                          type: object
-                        url:
-                          type: string
-                      required:
-                      - alias
-                      - url
-                      type: object
-                    type: array
-                required:
-                - name
-                - namespace
-                type: object
               observedGeneration:
                 format: int64
                 type: integer

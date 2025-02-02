@@ -327,7 +327,7 @@ func (s *Singlestore) SetDefaults() {
 		s.Spec.StorageType = StorageTypeDurable
 	}
 	if s.Spec.DeletionPolicy == "" {
-		s.Spec.DeletionPolicy = TerminationPolicyDelete
+		s.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if s.Spec.Topology == nil {
@@ -518,4 +518,26 @@ func (s *Singlestore) ReplicasAreReady(lister pslister.PetSetLister) (bool, stri
 		expectedItems = 2
 	}
 	return checkReplicasOfPetSet(lister.PetSets(s.Namespace), labels.SelectorFromSet(s.OffshootLabels()), expectedItems)
+}
+
+type SinglestoreBind struct {
+	*Singlestore
+}
+
+var _ DBBindInterface = &SinglestoreBind{}
+
+func (d *SinglestoreBind) ServiceNames() (string, string) {
+	return d.ServiceName(), d.ServiceName()
+}
+
+func (d *SinglestoreBind) Ports() (int, int) {
+	return kubedb.SinglestoreDatabasePort, kubedb.SinglestoreStudioPort
+}
+
+func (d *SinglestoreBind) SecretName() string {
+	return d.DefaultUserCredSecretName("root")
+}
+
+func (d *SinglestoreBind) CertSecretName() string {
+	return d.GetCertSecretName(SinglestoreClientCert)
 }

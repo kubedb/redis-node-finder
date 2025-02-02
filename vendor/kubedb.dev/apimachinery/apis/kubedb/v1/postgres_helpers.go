@@ -34,6 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/utils/ptr"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -79,6 +80,14 @@ func (p Postgres) PodLabels() map[string]string {
 
 func (p Postgres) PodControllerLabels() map[string]string {
 	return p.offshootLabels(p.OffshootSelectors(), p.Spec.PodTemplate.Controller.Labels)
+}
+
+func (p Postgres) SidekickLabels(skName string) map[string]string {
+	return meta_util.OverwriteKeys(nil, kubedb.CommonSidekickLabels(), map[string]string{
+		meta_util.InstanceLabelKey: skName,
+		kubedb.SidekickOwnerName:   p.Name,
+		kubedb.SidekickOwnerKind:   p.ResourceFQN(),
+	})
 }
 
 func (p Postgres) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]string) map[string]string {
@@ -190,7 +199,9 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion) {
 	if p == nil {
 		return
 	}
-
+	if p.Spec.StandbyMode == nil {
+		p.Spec.StandbyMode = ptr.To(HotPostgresStandbyMode)
+	}
 	if p.Spec.StorageType == "" {
 		p.Spec.StorageType = StorageTypeDurable
 	}
@@ -266,6 +277,9 @@ func (p *Postgres) SetDefaults(postgresVersion *catalog.PostgresVersion) {
 			p.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup = postgresVersion.Spec.SecurityContext.RunAsUser
 		}
 	}
+	if p.Spec.Init != nil && p.Spec.Init.Archiver != nil && p.Spec.Init.Archiver.ReplicationStrategy == nil {
+		p.Spec.Init.Archiver.ReplicationStrategy = ptr.To(ReplicationStrategyNone)
+	}
 }
 
 func getMajorPgVersion(postgresVersion *catalog.PostgresVersion) (uint64, error) {
@@ -291,10 +305,10 @@ func (p *Postgres) SetDefaultReplicationMode(postgresVersion *catalog.PostgresVe
 		}
 	}
 	if p.Spec.Replication.WALLimitPolicy == WALKeepSegment && p.Spec.Replication.WalKeepSegment == nil {
-		p.Spec.Replication.WalKeepSegment = pointer.Int32P(64)
+		p.Spec.Replication.WalKeepSegment = pointer.Int32P(96)
 	}
 	if p.Spec.Replication.WALLimitPolicy == WALKeepSize && p.Spec.Replication.WalKeepSizeInMegaBytes == nil {
-		p.Spec.Replication.WalKeepSizeInMegaBytes = pointer.Int32P(1024)
+		p.Spec.Replication.WalKeepSizeInMegaBytes = pointer.Int32P(1536)
 	}
 	if p.Spec.Replication.WALLimitPolicy == ReplicationSlot && p.Spec.Replication.MaxSlotWALKeepSizeInMegaBytes == nil {
 		p.Spec.Replication.MaxSlotWALKeepSizeInMegaBytes = pointer.Int32P(-1)
@@ -302,12 +316,12 @@ func (p *Postgres) SetDefaultReplicationMode(postgresVersion *catalog.PostgresVe
 }
 
 func (p *Postgres) SetArbiterDefault() {
-	if p.Spec.Arbiter == nil {
+	if ptr.Deref(p.Spec.Replicas, 0)%2 == 0 && p.Spec.Arbiter == nil {
 		p.Spec.Arbiter = &ArbiterSpec{
 			Resources: core.ResourceRequirements{},
 		}
+		apis.SetDefaultResourceLimits(&p.Spec.Arbiter.Resources, kubedb.DefaultArbiter(false))
 	}
-	apis.SetDefaultResourceLimits(&p.Spec.Arbiter.Resources, kubedb.DefaultArbiter(false))
 }
 
 func (p *Postgres) setDefaultPodSecurityContext(podTemplate *ofstv2.PodTemplateSpec, pgVersion *catalog.PostgresVersion) {

@@ -239,8 +239,8 @@ func (k *Kafka) CruiseControlConfigSecretName() string {
 	return meta_util.NameWithSuffix(k.OffshootName(), "cruise-control-config")
 }
 
-func (k *Kafka) DefaultUserCredSecretName(username string) string {
-	return meta_util.NameWithSuffix(k.Name, strings.ReplaceAll(fmt.Sprintf("%s-cred", username), "_", "-"))
+func (k *Kafka) DefaultUserCredSecretName() string {
+	return meta_util.NameWithSuffix(k.OffshootName(), "auth")
 }
 
 func (k *Kafka) DefaultKeystoreCredSecretName() string {
@@ -299,8 +299,16 @@ func (k *Kafka) SetHealthCheckerDefaults() {
 }
 
 func (k *Kafka) SetDefaults() {
+	if k.Spec.Halted {
+		if k.Spec.DeletionPolicy == DeletionPolicyDoNotTerminate {
+			klog.Errorf(`Can't halt, since deletion policy is 'DoNotTerminate'`)
+			return
+		}
+		k.Spec.DeletionPolicy = DeletionPolicyHalt
+	}
+
 	if k.Spec.DeletionPolicy == "" {
-		k.Spec.DeletionPolicy = TerminationPolicyDelete
+		k.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	if k.Spec.StorageType == "" {

@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	api "kubedb.dev/apimachinery/apis/kubedb/v1"
+
 	batch "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,6 +27,15 @@ import (
 	"kubestash.dev/apimachinery/apis"
 	stashcoreapi "kubestash.dev/apimachinery/apis/core/v1alpha1"
 )
+
+type Accessor interface {
+	GetObjectMeta() metav1.ObjectMeta
+	GetConsumers() *api.AllowedConsumers
+}
+
+type ListAccessor interface {
+	GetItems() []Accessor
+}
 
 type FullBackupOptions struct {
 	// +kubebuilder:default:=VolumeSnapshotter
@@ -60,11 +71,24 @@ type ManifestBackupOptions struct {
 	SessionHistoryLimit int32 `json:"sessionHistoryLimit,omitempty"`
 }
 
-type WalBackupOptions struct {
+type LogBackupOptions struct {
 	// +optional
 	RuntimeSettings *ofst.RuntimeSettings `json:"runtimeSettings,omitempty"`
+
 	// +optional
 	ConfigSecret *GenericSecretReference `json:"configSecret,omitempty"`
+
+	// SuccessfulLogHistoryLimit defines the number of successful Logs backup status that the incremental snapshot will retain
+	// The default value is 5.
+	// +kubebuilder:default=5
+	// +optional
+	SuccessfulLogHistoryLimit int32 `json:"successfulLogHistoryLimit,omitempty"`
+
+	// FailedLogHistoryLimit defines the number of failed Logs backup that the incremental snapshot will retain for debugging purposes.
+	// The default value is 5.
+	// +kubebuilder:default=5
+	// +optional
+	FailedLogHistoryLimit int32 `json:"failedLogHistoryLimit,omitempty"`
 }
 
 type Task struct {
@@ -76,16 +100,6 @@ type BackupStorage struct {
 	// +optional
 	SubDir string `json:"subDir,omitempty"`
 }
-
-// +kubebuilder:validation:Enum=Delete;WipeOut;DoNotDelete
-type DeletionPolicy string
-
-const (
-	// Deletes archiver, removes the backup jobs and walg sidecar containers, but keeps the backup data
-	DeletionPolicyDelete DeletionPolicy = "Delete"
-	// Deletes everything including the backup data
-	DeletionPolicyWipeOut DeletionPolicy = "WipeOut"
-)
 
 type SchedulerOptions struct {
 	Schedule string `json:"schedule"`

@@ -160,6 +160,10 @@ func (p *Pgpool) GetAuthSecretName() string {
 	return meta_util.NameWithSuffix(p.OffshootName(), "auth")
 }
 
+func (p *Pgpool) GetPcpConfigSecretName() string {
+	return meta_util.NameWithSuffix(p.OffshootName(), "pcp-config")
+}
+
 func (p *Pgpool) SetHealthCheckerDefaults() {
 	if p.Spec.HealthChecker.PeriodSeconds == nil {
 		p.Spec.HealthChecker.PeriodSeconds = pointer.Int32P(10)
@@ -348,7 +352,7 @@ func (p *Pgpool) SetDefaults() {
 		p.Spec.Replicas = pointer.Int32P(1)
 	}
 	if p.Spec.DeletionPolicy == "" {
-		p.Spec.DeletionPolicy = TerminationPolicyDelete
+		p.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 	if p.Spec.PodTemplate == nil {
 		p.Spec.PodTemplate = &ofst.PodTemplateSpec{}

@@ -120,10 +120,15 @@ spec:
                 type: object
               authSecret:
                 properties:
+                  activeFrom:
+                    format: date-time
+                    type: string
                   externallyManaged:
                     type: boolean
                   name:
                     default: ""
+                    type: string
+                  rotateAfter:
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
@@ -191,6 +196,24 @@ spec:
                         required:
                         - name
                         type: object
+                      manifestOptions:
+                        properties:
+                          archiver:
+                            default: false
+                            type: boolean
+                          archiverRef:
+                            properties:
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          initScript:
+                            default: false
+                            type: boolean
+                        type: object
                       manifestRepository:
                         properties:
                           name:
@@ -202,6 +225,13 @@ spec:
                         type: object
                       recoveryTimestamp:
                         format: date-time
+                        type: string
+                      replicationStrategy:
+                        enum:
+                        - fscopy
+                        - clone
+                        - sync
+                        - none
                         type: string
                     required:
                     - recoveryTimestamp
@@ -4612,19 +4642,29 @@ spec:
                 properties:
                   monitorUserSecret:
                     properties:
+                      activeFrom:
+                        format: date-time
+                        type: string
                       externallyManaged:
                         type: boolean
                       name:
                         default: ""
                         type: string
+                      rotateAfter:
+                        type: string
                     type: object
                     x-kubernetes-map-type: atomic
                   replicationUserSecret:
                     properties:
+                      activeFrom:
+                        format: date-time
+                        type: string
                       externallyManaged:
                         type: boolean
                       name:
                         default: ""
+                        type: string
+                      rotateAfter:
                         type: string
                     type: object
                     x-kubernetes-map-type: atomic
@@ -4768,87 +4808,6 @@ spec:
                   - type
                   type: object
                 type: array
-              gateway:
-                properties:
-                  hostname:
-                    type: string
-                  ip:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                  services:
-                    items:
-                      properties:
-                        alias:
-                          enum:
-                          - primary
-                          - standby
-                          - stats
-                          type: string
-                        ports:
-                          items:
-                            properties:
-                              backendServicePort:
-                                format: int32
-                                type: integer
-                              name:
-                                type: string
-                              nodePort:
-                                format: int32
-                                type: integer
-                              port:
-                                format: int32
-                                type: integer
-                            required:
-                            - port
-                            type: object
-                          type: array
-                      required:
-                      - alias
-                      - ports
-                      type: object
-                    type: array
-                  ui:
-                    items:
-                      properties:
-                        alias:
-                          type: string
-                        helmRelease:
-                          properties:
-                            name:
-                              default: ""
-                              type: string
-                          type: object
-                          x-kubernetes-map-type: atomic
-                        port:
-                          properties:
-                            backendServicePort:
-                              format: int32
-                              type: integer
-                            name:
-                              type: string
-                            nodePort:
-                              format: int32
-                              type: integer
-                            port:
-                              format: int32
-                              type: integer
-                          required:
-                          - port
-                          type: object
-                        url:
-                          type: string
-                      required:
-                      - alias
-                      - url
-                      type: object
-                    type: array
-                required:
-                - name
-                - namespace
-                type: object
               observedGeneration:
                 format: int64
                 type: integer
@@ -4962,10 +4921,15 @@ spec:
                 type: object
               authSecret:
                 properties:
+                  activeFrom:
+                    format: date-time
+                    type: string
                   externallyManaged:
                     type: boolean
                   name:
                     default: ""
+                    type: string
+                  rotateAfter:
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
@@ -5132,6 +5096,24 @@ spec:
                         required:
                         - name
                         type: object
+                      manifestOptions:
+                        properties:
+                          archiver:
+                            default: false
+                            type: boolean
+                          archiverRef:
+                            properties:
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          initScript:
+                            default: false
+                            type: boolean
+                        type: object
                       manifestRepository:
                         properties:
                           name:
@@ -5143,6 +5125,13 @@ spec:
                         type: object
                       recoveryTimestamp:
                         format: date-time
+                        type: string
+                      replicationStrategy:
+                        enum:
+                        - fscopy
+                        - clone
+                        - sync
+                        - none
                         type: string
                     required:
                     - recoveryTimestamp
@@ -8962,6 +8951,8 @@ spec:
                       - primary
                       - standby
                       - stats
+                      - dashboard
+                      - secondary
                       type: string
                     metadata:
                       properties:
@@ -9121,19 +9112,29 @@ spec:
                 properties:
                   monitorUserSecret:
                     properties:
+                      activeFrom:
+                        format: date-time
+                        type: string
                       externallyManaged:
                         type: boolean
                       name:
                         default: ""
                         type: string
+                      rotateAfter:
+                        type: string
                     type: object
                     x-kubernetes-map-type: atomic
                   replicationUserSecret:
                     properties:
+                      activeFrom:
+                        format: date-time
+                        type: string
                       externallyManaged:
                         type: boolean
                       name:
                         default: ""
+                        type: string
+                      rotateAfter:
                         type: string
                     type: object
                     x-kubernetes-map-type: atomic
@@ -9284,87 +9285,6 @@ spec:
                   - type
                   type: object
                 type: array
-              gateway:
-                properties:
-                  hostname:
-                    type: string
-                  ip:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                  services:
-                    items:
-                      properties:
-                        alias:
-                          enum:
-                          - primary
-                          - standby
-                          - stats
-                          type: string
-                        ports:
-                          items:
-                            properties:
-                              backendServicePort:
-                                format: int32
-                                type: integer
-                              name:
-                                type: string
-                              nodePort:
-                                format: int32
-                                type: integer
-                              port:
-                                format: int32
-                                type: integer
-                            required:
-                            - port
-                            type: object
-                          type: array
-                      required:
-                      - alias
-                      - ports
-                      type: object
-                    type: array
-                  ui:
-                    items:
-                      properties:
-                        alias:
-                          type: string
-                        helmRelease:
-                          properties:
-                            name:
-                              default: ""
-                              type: string
-                          type: object
-                          x-kubernetes-map-type: atomic
-                        port:
-                          properties:
-                            backendServicePort:
-                              format: int32
-                              type: integer
-                            name:
-                              type: string
-                            nodePort:
-                              format: int32
-                              type: integer
-                            port:
-                              format: int32
-                              type: integer
-                          required:
-                          - port
-                          type: object
-                        url:
-                          type: string
-                      required:
-                      - alias
-                      - url
-                      type: object
-                    type: array
-                required:
-                - name
-                - namespace
-                type: object
               observedGeneration:
                 format: int64
                 type: integer
