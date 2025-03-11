@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
+	redis_finder "kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
 	sentinel_finder "kubedb.dev/redis-node-finder/pkg/node-finder/sentinel-finder"
 
 	"github.com/spf13/cobra"
