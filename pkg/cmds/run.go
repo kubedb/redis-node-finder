@@ -18,8 +18,9 @@ package cmds
 
 import (
 	"fmt"
+	"os"
 
-	redis_finder "kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
+	"kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
 	sentinel_finder "kubedb.dev/redis-node-finder/pkg/node-finder/sentinel-finder"
 
 	"github.com/spf13/cobra"
@@ -30,6 +31,7 @@ var (
 	sentinelFile      string
 	masterFile        string
 	slaveFile         string
+	valkeyNodesFile   string
 	redisNodesFile    string
 	initialMasterFile string
 	cmd               = &cobra.Command{
@@ -40,7 +42,13 @@ var (
 			fmt.Println(mode)
 			if mode == "cluster" {
 				fmt.Println("Running node finder for cluster mode nodes")
-				c := redis_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
+				nodesFile := redisNodesFile
+				engine := os.Getenv("ENGINE")
+				if engine == "Valkey" {
+					nodesFile = valkeyNodesFile
+				}
+				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile)
+
 				c.RunRedisNodeFinder()
 			} else if mode == "sentinel" {
 				fmt.Println("Running node finder for sentinels")
@@ -60,6 +68,7 @@ func NewCmdRun() *cobra.Command {
 func init() {
 	cmd.PersistentFlags().StringVar(&masterFile, "master-file", "master.txt", "Contains master count")
 	cmd.PersistentFlags().StringVar(&slaveFile, "slave-file", "slave.txt", "Contains slave count")
+	cmd.PersistentFlags().StringVar(&valkeyNodesFile, "valkey-nodes-file", "valkey-nodes.txt", "Contains dns names of valkey nodes")
 	cmd.PersistentFlags().StringVar(&redisNodesFile, "redis-nodes-file", "redis-nodes.txt", "Contains dns names of redis nodes")
 	cmd.PersistentFlags().StringVar(&initialMasterFile, "initial-master-file", "initial-master-nodes.txt", "Contains dns names of initial masters")
 

@@ -47,12 +47,12 @@ func New(sentinelFile string) *SentinelReplicaFinderFinder {
 		klog.Fatalln(err)
 	}
 	namespace := os.Getenv("SENTINEL_NAMESPACE")
-	RedisName := os.Getenv("SENTINEL_NAME")
+	SentinelName := os.Getenv("SENTINEL_NAME")
 
 	return &SentinelReplicaFinderFinder{
 		dbClient:       dbClient,
 		Namespace:      namespace,
-		sentinelDBName: RedisName,
+		sentinelDBName: SentinelName,
 		sentinelFile:   sentinelFile,
 	}
 }

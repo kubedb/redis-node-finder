@@ -37,11 +37,12 @@ type RedisdNodeFinder struct {
 	RedisName              string
 	masterFile             string
 	slaveFile              string
-	redisNodesFile         string
+	NodesFile              string
 	initialMasterNodesFile string
+	Engine                 string
 }
 
-func New(masterFile string, slaveFile string, redisNodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
+func New(masterFile string, slaveFile string, NodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -51,9 +52,18 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 	if err != nil {
 		klog.Fatalln(err)
 	}
+
+	engine := os.Getenv("ENGINE")
 	namespace := os.Getenv("NAMESPACE")
-	RedisName := os.Getenv("REDIS_NAME")
-	dbGoverningServiceName := os.Getenv("REDIS_GOVERNING_SERVICE")
+
+	envKeyDbName := "REDIS_NAME"
+	envKeyGovService := "REDIS_GOVERNING_SERVICE"
+	if engine == "Valkey" {
+		envKeyDbName = "VALKEY_NAME"
+		envKeyGovService = "VALKEY_GOVERNING_SERVICE"
+	}
+	RedisName := os.Getenv(envKeyDbName)
+	dbGoverningServiceName := os.Getenv(envKeyGovService)
 
 	return &RedisdNodeFinder{
 		dbClient:               dbClient,
@@ -63,12 +73,13 @@ func New(masterFile string, slaveFile string, redisNodesFile string, initialMast
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
-		redisNodesFile:         redisNodesFile,
+		NodesFile:              NodesFile,
 		initialMasterNodesFile: initialMasterNodesFile,
+		Engine:                 engine,
 	}
 }
 
-// RunRedisNodeFinder  get Redis DB  object and extract shard/replica count, and initial master nodes name and write them to given
+// RunRedisNodeFinder get Redis DB object and extract shard/replica count, and initial master nodes name and write them to given
 // file name in /tmp directory. The call is made from init script, so it will write to tmp/ directory
 // The init script then use those value to provision the db object with right configuration and the init
 // script also has updated information during pod restart
@@ -94,7 +105,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			redisNodes = append(redisNodes, dnsName)
 		}
 	}
-	r.writePodDNSToFile(r.redisNodesFile, redisNodes)
+	r.writePodDNSToFile(r.NodesFile, redisNodes)
 
 	var masterNodes []string
 	for shardNO := 0; shardNO < dbShardCount; shardNO++ {
