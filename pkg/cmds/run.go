@@ -43,8 +43,8 @@ var (
 			if mode == "cluster" {
 				fmt.Println("Running node finder for cluster mode nodes")
 				nodesFile := redisNodesFile
-				engine := os.Getenv("ENGINE")
-				if engine == "Valkey" {
+				distribution := os.Getenv("DISTRIBUTION")
+				if distribution == "Valkey" {
 					nodesFile = valkeyNodesFile
 				}
 				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile)
