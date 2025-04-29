@@ -18,6 +18,7 @@ package cmds
 
 import (
 	"fmt"
+
 	redis_finder "kubedb.dev/redis-node-finder/pkg/node-finder/redis-finder"
 	sentinel_finder "kubedb.dev/redis-node-finder/pkg/node-finder/sentinel-finder"
 

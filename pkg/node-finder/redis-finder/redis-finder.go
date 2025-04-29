@@ -41,7 +41,7 @@ type RedisdNodeFinder struct {
 	initialMasterNodesFile string
 }
 
-func New(masterFile string, slaveFile string, NodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
+func New(masterFile string, slaveFile string, nodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -67,7 +67,7 @@ func New(masterFile string, slaveFile string, NodesFile string, initialMasterNod
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
-		NodesFile:              NodesFile,
+		NodesFile:              nodesFile,
 		initialMasterNodesFile: initialMasterNodesFile,
 	}
 }
