@@ -30,7 +30,7 @@ var (
 	sentinelFile      string
 	masterFile        string
 	slaveFile         string
-	redisNodesFile    string
+	nodesFile         string
 	initialMasterFile string
 	cmd               = &cobra.Command{
 		Use:               "run",
@@ -40,7 +40,8 @@ var (
 			fmt.Println(mode)
 			if mode == "cluster" {
 				fmt.Println("Running node finder for cluster mode nodes")
-				c := redis_finder.New(masterFile, slaveFile, redisNodesFile, initialMasterFile)
+				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile)
+
 				c.RunRedisNodeFinder()
 			} else if mode == "sentinel" {
 				fmt.Println("Running node finder for sentinels")
@@ -60,7 +61,7 @@ func NewCmdRun() *cobra.Command {
 func init() {
 	cmd.PersistentFlags().StringVar(&masterFile, "master-file", "master.txt", "Contains master count")
 	cmd.PersistentFlags().StringVar(&slaveFile, "slave-file", "slave.txt", "Contains slave count")
-	cmd.PersistentFlags().StringVar(&redisNodesFile, "redis-nodes-file", "redis-nodes.txt", "Contains dns names of redis nodes")
+	cmd.PersistentFlags().StringVar(&nodesFile, "nodes-file", "db-nodes.txt", "Contains dns names of database nodes")
 	cmd.PersistentFlags().StringVar(&initialMasterFile, "initial-master-file", "initial-master-nodes.txt", "Contains dns names of initial masters")
 
 	cmd.PersistentFlags().StringVar(&mode, "mode", "cluster", "Contains Database Mode")
