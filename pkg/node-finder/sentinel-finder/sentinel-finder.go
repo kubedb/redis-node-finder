@@ -29,14 +29,14 @@ import (
 	"kmodules.xyz/client-go/tools/clientcmd"
 )
 
-type SentinelReplicaFinderFinder struct {
+type SentinelReplicaFinder struct {
 	Namespace      string
 	dbClient       *cs.Clientset
 	sentinelDBName string
 	sentinelFile   string
 }
 
-func New(sentinelFile string) *SentinelReplicaFinderFinder {
+func New(sentinelFile string) *SentinelReplicaFinder {
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -49,7 +49,7 @@ func New(sentinelFile string) *SentinelReplicaFinderFinder {
 	namespace := os.Getenv("SENTINEL_NAMESPACE")
 	SentinelName := os.Getenv("SENTINEL_NAME")
 
-	return &SentinelReplicaFinderFinder{
+	return &SentinelReplicaFinder{
 		dbClient:       dbClient,
 		Namespace:      namespace,
 		sentinelDBName: SentinelName,
@@ -61,7 +61,7 @@ func New(sentinelFile string) *SentinelReplicaFinderFinder {
 // file name in /tmp directory. The call is made from init script, so it will write to /tmp/ directory
 // The init script then use those value to provision the db object with right configuration and the init
 // script also has updated information during pod restart
-func (r *SentinelReplicaFinderFinder) RunSentinelReplicaFinder() {
+func (r *SentinelReplicaFinder) RunSentinelReplicaFinder() {
 	db, err := r.dbClient.KubedbV1().RedisSentinels(r.Namespace).Get(context.TODO(), r.sentinelDBName, metav1.GetOptions{})
 	if err != nil {
 		klog.Fatalln(err)
@@ -73,7 +73,7 @@ func (r *SentinelReplicaFinderFinder) RunSentinelReplicaFinder() {
 	r.writeInfoToFile(r.sentinelFile, dbReplicaCount)
 }
 
-func (r *SentinelReplicaFinderFinder) writeInfoToFile(filename string, count int) {
+func (r *SentinelReplicaFinder) writeInfoToFile(filename string, count int) {
 	filePath := fmt.Sprintf("/tmp/%s", filename)
 	file, err := os.Create(filePath)
 	if err != nil {
