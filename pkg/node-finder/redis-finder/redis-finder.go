@@ -39,7 +39,6 @@ type RedisdNodeFinder struct {
 	slaveFile              string
 	NodesFile              string
 	initialMasterNodesFile string
-	Distribution           string
 }
 
 func New(masterFile string, slaveFile string, NodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
@@ -53,15 +52,10 @@ func New(masterFile string, slaveFile string, NodesFile string, initialMasterNod
 		klog.Fatalln(err)
 	}
 
-	distribution := os.Getenv("DISTRIBUTION")
 	namespace := os.Getenv("NAMESPACE")
 
-	envKeyDbName := "REDIS_NAME"
-	envKeyGovService := "REDIS_GOVERNING_SERVICE"
-	if distribution == "Valkey" {
-		envKeyDbName = "VALKEY_NAME"
-		envKeyGovService = "VALKEY_GOVERNING_SERVICE"
-	}
+	envKeyDbName := "DATABASE_NAME"
+	envKeyGovService := "DATABASE_GOVERNING_SERVICE"
 	RedisName := os.Getenv(envKeyDbName)
 	dbGoverningServiceName := os.Getenv(envKeyGovService)
 
@@ -75,7 +69,6 @@ func New(masterFile string, slaveFile string, NodesFile string, initialMasterNod
 		slaveFile:              slaveFile,
 		NodesFile:              NodesFile,
 		initialMasterNodesFile: initialMasterNodesFile,
-		Distribution:           distribution,
 	}
 }
 

@@ -12,8 +12,7 @@ redis-node-finder run [flags]
   -h, --help                         help for run
       --initial-master-file string   Contains dns names of initial masters (default "initial-master-nodes.txt")
       --master-file string           Contains master count (default "master.txt")
-      --redis-nodes-file string      If official distribution is running, contains dns names of redis nodes (default "redis-nodes.txt")
-      --valkey-nodes-file string     If valkey distribution is running, contains dns names of valkey nodes (default "valkey-nodes.txt")
+      --db-nodes-file string         If official distribution is running, contains dns names of redis nodes (default "db-nodes.txt")
       --slave-file string            Contains slave count (default "slave.txt")
 ```
 
