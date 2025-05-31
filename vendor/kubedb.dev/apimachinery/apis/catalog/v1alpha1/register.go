@@ -54,6 +54,8 @@ func Resource(resource string) schema.GroupResource {
 // Adds the list of known types to api.Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
+		&CassandraVersion{},
+		&CassandraVersionList{},
 		&ClickHouseVersion{},
 		&ClickHouseVersionList{},
 		&DruidVersion{},
@@ -64,6 +66,10 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&EtcdVersionList{},
 		&FerretDBVersion{},
 		&FerretDBVersionList{},
+		&HazelcastVersion{},
+		&HazelcastVersionList{},
+		&IgniteVersion{},
+		&IgniteVersionList{},
 		&KafkaVersion{},
 		&KafkaVersionList{},
 		&KafkaConnectorVersion{},
@@ -78,6 +84,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&MSSQLServerVersionList{},
 		&MySQLVersion{},
 		&MySQLVersionList{},
+		&OracleVersion{},
+		&OracleVersionList{},
 		&PerconaXtraDBVersion{},
 		&PerconaXtraDBVersionList{},
 		&PgBouncerVersion{},

@@ -39,7 +39,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=proxysqlopsrequests,singular=proxysqlopsrequest,shortName=prxops,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=proxysqlopsrequests,singular=proxysqlopsrequest,shortName=prxops,categories={ops,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -67,6 +67,8 @@ type ProxySQLOpsRequestSpec struct {
 	Configuration *ProxySQLCustomConfigurationSpec `json:"configuration,omitempty"`
 	// Specifies information necessary for configuring TLS
 	TLS *TLSSpec `json:"tls,omitempty"`
+	// Specifies information necessary for configuring authSecret of the database
+	Authentication *AuthSpec `json:"authentication,omitempty"`
 	// Specifies information necessary for restarting database
 	Restart *RestartSpec `json:"restart,omitempty"`
 	// Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.
@@ -76,8 +78,8 @@ type ProxySQLOpsRequestSpec struct {
 	Apply ApplyOption `json:"apply,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;Restart;Reconfigure;ReconfigureTLS
-// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, Restart, Reconfigure, ReconfigureTLS)
+// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;Restart;Reconfigure;ReconfigureTLS;RotateAuth
+// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, Restart, Reconfigure, ReconfigureTLS, RotateAuth)
 type ProxySQLOpsRequestType string
 
 // ProxySQLReplicaReadinessCriteria is the criteria for checking readiness of a ProxySQL pod

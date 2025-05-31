@@ -37,7 +37,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=mariadbversions,singular=mariadbversion,scope=Cluster,shortName=mariaversion,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=mariadbversions,singular=mariadbversion,scope=Cluster,shortName=mdversion,categories={catalog,kubedb,appscode}
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="DB_IMAGE",type="string",JSONPath=".spec.db.image"
 // +kubebuilder:printcolumn:name="Deprecated",type="boolean",JSONPath=".spec.deprecated"
@@ -54,6 +54,9 @@ type MariaDBVersionSpec struct {
 	Version string `json:"version"`
 	// Database Image
 	DB MariaDBVersionDatabase `json:"db"`
+	// Maxscale Image
+	// +optional
+	Maxscale MariaDBVersionMaxscale `json:"maxscale"`
 	// Exporter Image
 	Exporter MariaDBVersionExporter `json:"exporter"`
 	// Coordinator Image
@@ -78,11 +81,21 @@ type MariaDBVersionSpec struct {
 	SecurityContext SecurityContext `json:"securityContext"`
 	// Archiver defines the walg & stash-addon related specifications
 	Archiver ArchiverSpec `json:"archiver,omitempty"`
+	// +optional
+	UI []ChartInfo `json:"ui,omitempty"`
 }
 
 // MariaDBVersionDatabase is the mariadb image
 type MariaDBVersionDatabase struct {
 	Image string `json:"image"`
+}
+
+// MariaDBVersionMaxscale is the mariadb maxscale image
+type MariaDBVersionMaxscale struct {
+	Image string `json:"image"`
+	// SecurityContext is for the additional config for the maxscale container
+	// +optional
+	SecurityContext SecurityContext `json:"securityContext"`
 }
 
 // MariaDBVersionExporter is the image for the MariaDB exporter

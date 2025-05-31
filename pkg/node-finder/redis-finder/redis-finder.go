@@ -19,6 +19,7 @@ package redis_finder
 import (
 	"context"
 	"fmt"
+	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
 	"os"
 
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
@@ -88,16 +89,17 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writeInfoToFile(r.masterFile, dbShardCount)
 	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
-	var redisNodes []string
+	var podList []string
 	for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 
 		for podNo := 0; podNo < dbReplicaCount; podNo++ {
 			podName := fmt.Sprintf("%s-%d", shardName, podNo)
-			dnsName := podName + "." + r.dbGoverningServiceName
-			redisNodes = append(redisNodes, dnsName)
+			//dnsName := podName + "." + r.dbGoverningServiceName
+			podList = append(podList, podName)
 		}
 	}
+
 	r.writePodDNSToFile(r.NodesFile, redisNodes)
 
 	var masterNodes []string
@@ -148,4 +150,21 @@ func (r *RedisdNodeFinder) writePodDNSToFile(filename string, dnsNames []string)
 			return
 		}
 	}
+}
+
+func (r *RedisdNodeFinder) isValidAnnouncesGiven(rd *v1.Redis) bool {
+	if rd.Spec.Cluster == nil || rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
+		return false
+	}
+	preferredEndpointType := rd.Spec.Cluster.Announce.Type
+	if preferredEndpointType == "" {
+		preferredEndpointType = v1.PreferredEndpointTypeIP
+	}
+	announceList := rd.Spec.Cluster.Announce.Shards
+
+	var expectedAnnounceCount = int((*rd.Spec.Cluster.Shards) * (*rd.Spec.Cluster.Replicas))
+	if len(announceList) != expectedAnnounceCount {
+		return false
+	}
+
 }

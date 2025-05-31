@@ -17,19 +17,30 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 
 	"kubedb.dev/apimachinery/apis"
+	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/apimachinery/apis/kubedb"
 	dbapi "kubedb.dev/apimachinery/apis/kubedb/v1"
 	"kubedb.dev/apimachinery/crds"
 
+	"gomodules.xyz/pointer"
+	core "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
+	coreutil "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
+	"kmodules.xyz/client-go/policy/secomp"
+	ofst "kmodules.xyz/offshoot-api/api/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (_ ElasticsearchDashboard) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
@@ -231,4 +242,124 @@ func (ed *ElasticsearchDashboard) CertSecretExists(alias ElasticsearchDashboardC
 		}
 	}
 	return false
+}
+
+func (ed *ElasticsearchDashboard) SetHealthCheckerDefaults() {
+	if ed.Spec.HealthChecker.PeriodSeconds == nil {
+		ed.Spec.HealthChecker.PeriodSeconds = pointer.Int32P(20)
+	}
+	if ed.Spec.HealthChecker.TimeoutSeconds == nil {
+		ed.Spec.HealthChecker.TimeoutSeconds = pointer.Int32P(10)
+	}
+	if ed.Spec.HealthChecker.FailureThreshold == nil {
+		ed.Spec.HealthChecker.FailureThreshold = pointer.Int32P(3)
+	}
+}
+
+func (ed *ElasticsearchDashboard) SetDefaults(kc client.Client) {
+	if ed.Spec.DeletionPolicy == "" {
+		ed.Spec.DeletionPolicy = dbapi.DeletionPolicyDelete
+	}
+
+	db := dbapi.Elasticsearch{}
+	esVersion := catalog.ElasticsearchVersion{}
+	err := kc.Get(context.TODO(), types.NamespacedName{
+		Name:      ed.Spec.DatabaseRef.Name,
+		Namespace: ed.Namespace,
+	}, &db)
+	if err != nil {
+		klog.Errorf("can't get the elasticsearch: %v\n", err.Error())
+		return
+	}
+
+	err = kc.Get(context.TODO(), types.NamespacedName{
+		Name: db.Spec.Version,
+	}, &esVersion)
+	if err != nil {
+		klog.Errorf("can't get the elasticsearch version: %v\n", err.Error())
+		return
+	}
+
+	if ed.Spec.Replicas == nil {
+		ed.Spec.Replicas = pointer.Int32P(1)
+	}
+	if ed.Spec.PodTemplate.Spec.SecurityContext == nil {
+		ed.Spec.PodTemplate.Spec.SecurityContext = &v1.PodSecurityContext{}
+	}
+	ed.Spec.PodTemplate.Spec.SecurityContext.FSGroup = esVersion.Spec.SecurityContext.RunAsUser
+	ed.setDefaultContainerSecurityContext(esVersion, &ed.Spec.PodTemplate)
+	ed.setDefaultContainerResourceLimits(&ed.Spec.PodTemplate)
+
+	if ed.Spec.EnableSSL {
+		if ed.Spec.TLS == nil {
+			ed.Spec.TLS = &kmapi.TLSConfig{}
+		}
+		if ed.Spec.TLS.IssuerRef == nil {
+			ed.Spec.TLS.Certificates = kmapi.SetMissingSpecForCertificate(ed.Spec.TLS.Certificates, kmapi.CertificateSpec{
+				Alias:      string(ElasticsearchDashboardCACert),
+				SecretName: ed.DefaultCertificateSecretName(ElasticsearchDashboardCACert),
+			})
+		}
+		ed.Spec.TLS.Certificates = kmapi.SetMissingSpecForCertificate(ed.Spec.TLS.Certificates, kmapi.CertificateSpec{
+			Alias:      string(ElasticsearchDashboardServerCert),
+			SecretName: ed.DefaultCertificateSecretName(ElasticsearchDashboardServerCert),
+		})
+	}
+}
+
+func (ed *ElasticsearchDashboard) setDefaultContainerSecurityContext(esVersion catalog.ElasticsearchVersion, podTemplate *ofst.PodTemplateSpec) {
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.ElasticsearchInitConfigMergerContainerName)
+	if initContainer == nil {
+		initContainer = &core.Container{
+			Name: kubedb.ElasticsearchInitConfigMergerContainerName,
+		}
+	}
+	if initContainer.SecurityContext == nil {
+		initContainer.SecurityContext = &core.SecurityContext{}
+	}
+	ed.assignDefaultContainerSecurityContext(esVersion, initContainer.SecurityContext)
+	podTemplate.Spec.InitContainers = coreutil.UpsertContainer(podTemplate.Spec.InitContainers, *initContainer)
+	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.ElasticsearchContainerName)
+	if container == nil {
+		container = &core.Container{
+			Name: kubedb.ElasticsearchContainerName,
+		}
+	}
+	if container.SecurityContext == nil {
+		container.SecurityContext = &core.SecurityContext{}
+	}
+	ed.assignDefaultContainerSecurityContext(esVersion, container.SecurityContext)
+	podTemplate.Spec.Containers = coreutil.UpsertContainer(podTemplate.Spec.Containers, *container)
+}
+
+func (ed *ElasticsearchDashboard) setDefaultContainerResourceLimits(podTemplate *ofst.PodTemplateSpec) {
+	container := coreutil.GetContainerByName(podTemplate.Spec.Containers, kubedb.ElasticsearchContainerName)
+	if container != nil && (container.Resources.Requests == nil && container.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&container.Resources, kubedb.DefaultResources)
+	}
+
+	initContainer := coreutil.GetContainerByName(podTemplate.Spec.InitContainers, kubedb.ElasticsearchInitConfigMergerContainerName)
+	if initContainer != nil && (initContainer.Resources.Requests == nil && initContainer.Resources.Limits == nil) {
+		apis.SetDefaultResourceLimits(&initContainer.Resources, kubedb.DefaultInitContainerResource)
+	}
+}
+
+func (ed *ElasticsearchDashboard) assignDefaultContainerSecurityContext(esVersion catalog.ElasticsearchVersion, sc *core.SecurityContext) {
+	if sc.AllowPrivilegeEscalation == nil {
+		sc.AllowPrivilegeEscalation = pointer.BoolP(false)
+	}
+	if sc.Capabilities == nil {
+		sc.Capabilities = &core.Capabilities{
+			Drop: []core.Capability{"ALL"},
+		}
+	}
+	if sc.RunAsNonRoot == nil {
+		sc.RunAsNonRoot = pointer.BoolP(esVersion.Spec.SecurityContext.RunAsAnyNonRoot)
+	}
+	if sc.RunAsUser == nil {
+		sc.RunAsUser = esVersion.Spec.SecurityContext.RunAsUser
+	}
+	if sc.SeccompProfile == nil {
+		sc.SeccompProfile = secomp.DefaultSeccompProfile()
+	}
 }

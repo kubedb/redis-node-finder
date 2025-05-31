@@ -37,7 +37,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=redisversions,singular=redisversion,scope=Cluster,shortName=rdversion,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=redisversions,singular=redisversion,scope=Cluster,shortName=rdversion,categories={catalog,kubedb,appscode}
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="DB_IMAGE",type="string",JSONPath=".spec.db.image"
 // +kubebuilder:printcolumn:name="Deprecated",type="boolean",JSONPath=".spec.deprecated"
@@ -52,6 +52,8 @@ type RedisVersion struct {
 type RedisVersionSpec struct {
 	// Version
 	Version string `json:"version"`
+	// Distribution determines the type of the database(Valkey or Redis)
+	Distribution RedisDistro `json:"distribution,omitempty"`
 	// init container image
 	InitContainer RedisVersionInitContainer `json:"initContainer,omitempty"`
 	// Database Image
@@ -75,6 +77,8 @@ type RedisVersionSpec struct {
 	// SecurityContext is for the additional config for the DB container
 	// +optional
 	SecurityContext SecurityContext `json:"securityContext"`
+	// +optional
+	UI []ChartInfo `json:"ui,omitempty"`
 }
 
 // RedisVersionInitContainer is the Redis init container image
@@ -111,3 +115,11 @@ type RedisVersionList struct {
 	// Items is a list of RedisVersion CRD objects
 	Items []RedisVersion `json:"items,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=Official;Valkey
+type RedisDistro string
+
+const (
+	RedisDistroOfficial RedisDistro = "Official"
+	RedisDistroValkey   RedisDistro = "Valkey"
+)

@@ -37,7 +37,6 @@ var (
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(mode)
 			if mode == "cluster" {
 				fmt.Println("Running node finder for cluster mode nodes")
 				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile)

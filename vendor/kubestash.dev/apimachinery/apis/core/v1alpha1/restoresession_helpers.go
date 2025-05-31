@@ -17,14 +17,17 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
-	"kubestash.dev/apimachinery/apis"
-	"kubestash.dev/apimachinery/crds"
-
 	"kmodules.xyz/client-go/apiextensions"
 	cutil "kmodules.xyz/client-go/conditions"
 	meta_util "kmodules.xyz/client-go/meta"
+	dbapi "kubedb.dev/apimachinery/apis/kubedb/v1"
+	olddbapi "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubestash.dev/apimachinery/apis"
+	"kubestash.dev/apimachinery/apis/storage/v1alpha1"
+	"kubestash.dev/apimachinery/crds"
 )
 
 func (_ RestoreSession) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
@@ -41,10 +44,10 @@ func (rs *RestoreSession) CalculatePhase() RestorePhase {
 	}
 
 	if cutil.IsConditionTrue(rs.Status.Conditions, TypeMetricsPushed) &&
-		(cutil.IsConditionTrue(rs.Status.Conditions, TypeDeadlineExceeded) ||
-			cutil.IsConditionFalse(rs.Status.Conditions, TypePreRestoreHooksExecutionSucceeded) ||
+		(cutil.IsConditionFalse(rs.Status.Conditions, TypePreRestoreHooksExecutionSucceeded) ||
 			cutil.IsConditionFalse(rs.Status.Conditions, TypePostRestoreHooksExecutionSucceeded) ||
-			cutil.IsConditionFalse(rs.Status.Conditions, TypeRestoreExecutorEnsured)) {
+			cutil.IsConditionFalse(rs.Status.Conditions, TypeRestoreExecutorEnsured) ||
+			cutil.IsConditionTrue(rs.Status.Conditions, TypeRestoreIncomplete)) {
 		return RestoreFailed
 	}
 
@@ -180,4 +183,101 @@ func (rs *RestoreSession) GetDataSourceNamespace() string {
 		return rs.Namespace
 	}
 	return rs.Spec.DataSource.Namespace
+}
+
+func (rs *RestoreSession) GetRemainingTimeoutDuration() (*metav1.Duration, error) {
+	if rs.Spec.RestoreTimeout == nil || rs.Status.RestoreDeadline == nil {
+		return nil, nil
+	}
+	currentTime := metav1.Now()
+	if rs.Status.RestoreDeadline.Before(&currentTime) {
+		return nil, fmt.Errorf("deadline exceeded")
+	}
+	return &metav1.Duration{Duration: rs.Status.RestoreDeadline.Sub(currentTime.Time)}, nil
+}
+
+func (rs *RestoreSession) GetTargetObjectRef(snap *v1alpha1.Snapshot) *kmapi.ObjectReference {
+	if rs.Spec.Target != nil {
+		return &kmapi.ObjectReference{
+			Namespace: rs.Spec.Target.Namespace,
+			Name:      rs.Spec.Target.Name,
+		}
+	}
+	return rs.getTargetRef(snap.Spec.AppRef)
+}
+
+func (rs *RestoreSession) IsApplicationLevelRestore() bool {
+	tasks := map[string]bool{}
+	for _, task := range rs.Spec.Addon.Tasks {
+		tasks[task.Name] = true
+	}
+
+	return tasks[apis.ManifestRestore] && tasks[apis.LogicalBackupRestore]
+}
+
+func (rs *RestoreSession) getTargetRef(appRef kmapi.TypedObjectReference) *kmapi.ObjectReference {
+	targetRef := &kmapi.ObjectReference{
+		Name:      appRef.Name,
+		Namespace: appRef.Namespace,
+	}
+
+	if rs.Spec.ManifestOptions == nil {
+		return targetRef
+	}
+
+	overrideTargetRef := func(name, namespace string) {
+		if name != "" {
+			targetRef.Name = name
+		}
+		if namespace != "" {
+			targetRef.Namespace = namespace
+		}
+	}
+
+	opt := rs.Spec.ManifestOptions
+
+	if opt.Workload != nil {
+		overrideTargetRef("", opt.Workload.RestoreNamespace)
+	}
+
+	switch appRef.Kind {
+	case dbapi.ResourceKindMySQL:
+		if opt.MySQL != nil {
+			overrideTargetRef(opt.MySQL.DBName, opt.MySQL.RestoreNamespace)
+		}
+	case dbapi.ResourceKindPostgres:
+		if opt.Postgres != nil {
+			overrideTargetRef(opt.Postgres.DBName, opt.Postgres.RestoreNamespace)
+		}
+	case dbapi.ResourceKindMongoDB:
+		if opt.MongoDB != nil {
+			overrideTargetRef(opt.MongoDB.DBName, opt.MongoDB.RestoreNamespace)
+		}
+	case dbapi.ResourceKindMariaDB:
+		if opt.MariaDB != nil {
+			overrideTargetRef(opt.MariaDB.DBName, opt.MariaDB.RestoreNamespace)
+		}
+	case dbapi.ResourceKindRedis:
+		if opt.Redis != nil {
+			overrideTargetRef(opt.Redis.DBName, opt.Redis.RestoreNamespace)
+		}
+	case olddbapi.ResourceKindMSSQLServer:
+		if opt.MSSQLServer != nil {
+			overrideTargetRef(opt.MSSQLServer.DBName, opt.MSSQLServer.RestoreNamespace)
+		}
+	case olddbapi.ResourceKindDruid:
+		if opt.Druid != nil {
+			overrideTargetRef(opt.Druid.DBName, opt.Druid.RestoreNamespace)
+		}
+	case olddbapi.ResourceKindZooKeeper:
+		if opt.ZooKeeper != nil {
+			overrideTargetRef(opt.ZooKeeper.DBName, opt.ZooKeeper.RestoreNamespace)
+		}
+	case olddbapi.ResourceKindSinglestore:
+		if opt.Singlestore != nil {
+			overrideTargetRef(opt.Singlestore.DBName, opt.Singlestore.RestoreNamespace)
+		}
+	}
+
+	return targetRef
 }

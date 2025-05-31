@@ -33,7 +33,7 @@ type SubscriberSpec struct {
 	// Name of the publisher
 	Name string `json:"name"`
 	// ServerRef specifies the database appbinding reference in any namespace.
-	ServerRef core.LocalObjectReference `json:"serverRef"`
+	DatabaseRef core.LocalObjectReference `json:"databaseRef"`
 	// DatabaseName is the name of the target database inside a Postgres instance.
 	DatabaseName string `json:"databaseName"`
 	// Parameters to set while creating subscriber
@@ -162,7 +162,7 @@ const (
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=subscribers,singular=subscriber,shortName=sub,categories={datastore,kubedb,appscode,all}
+// +kubebuilder:resource:path=subscribers,singular=subscriber,shortName=sub,categories={pgstore,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"

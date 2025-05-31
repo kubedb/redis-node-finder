@@ -29,17 +29,21 @@ import (
 
 type KubedbV1alpha2Interface interface {
 	RESTClient() rest.Interface
+	CassandrasGetter
 	ClickHousesGetter
 	DruidsGetter
 	ElasticsearchesGetter
 	EtcdsGetter
 	FerretDBsGetter
+	HazelcastsGetter
+	IgnitesGetter
 	KafkasGetter
 	MSSQLServersGetter
 	MariaDBsGetter
 	MemcachedsGetter
 	MongoDBsGetter
 	MySQLsGetter
+	OraclesGetter
 	PerconaXtraDBsGetter
 	PgBouncersGetter
 	PgpoolsGetter
@@ -56,6 +60,10 @@ type KubedbV1alpha2Interface interface {
 // KubedbV1alpha2Client is used to interact with features provided by the kubedb.com group.
 type KubedbV1alpha2Client struct {
 	restClient rest.Interface
+}
+
+func (c *KubedbV1alpha2Client) Cassandras(namespace string) CassandraInterface {
+	return newCassandras(c, namespace)
 }
 
 func (c *KubedbV1alpha2Client) ClickHouses(namespace string) ClickHouseInterface {
@@ -76,6 +84,14 @@ func (c *KubedbV1alpha2Client) Etcds(namespace string) EtcdInterface {
 
 func (c *KubedbV1alpha2Client) FerretDBs(namespace string) FerretDBInterface {
 	return newFerretDBs(c, namespace)
+}
+
+func (c *KubedbV1alpha2Client) Hazelcasts(namespace string) HazelcastInterface {
+	return newHazelcasts(c, namespace)
+}
+
+func (c *KubedbV1alpha2Client) Ignites(namespace string) IgniteInterface {
+	return newIgnites(c, namespace)
 }
 
 func (c *KubedbV1alpha2Client) Kafkas(namespace string) KafkaInterface {
@@ -100,6 +116,10 @@ func (c *KubedbV1alpha2Client) MongoDBs(namespace string) MongoDBInterface {
 
 func (c *KubedbV1alpha2Client) MySQLs(namespace string) MySQLInterface {
 	return newMySQLs(c, namespace)
+}
+
+func (c *KubedbV1alpha2Client) Oracles(namespace string) OracleInterface {
+	return newOracles(c, namespace)
 }
 
 func (c *KubedbV1alpha2Client) PerconaXtraDBs(namespace string) PerconaXtraDBInterface {

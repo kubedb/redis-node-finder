@@ -39,7 +39,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=pgbouncers,singular=pgbouncer,shortName=pb,categories={proxy,kubedb,appscode,all}
+// +kubebuilder:resource:path=pgbouncers,singular=pgbouncer,shortName=pb,categories={datastore,kubedb,appscode,all}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -99,12 +99,16 @@ type PgBouncerSpec struct {
 
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy PgBouncerTerminationPolicy `json:"terminationPolicy,omitempty"`
+	TerminationPolicy DeletionPolicy `json:"terminationPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
 	// +kubebuilder:default={periodSeconds: 10, timeoutSeconds: 10, failureThreshold: 1}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
+
+	// Indicates that the database is halted and all offshoot Kubernetes resources are deleted.
+	// +optional
+	Halted bool `json:"halted,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=server;archiver;metrics-exporter
@@ -208,8 +212,6 @@ type PgBouncerStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
-	// +optional
-	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=disable;allow;prefer;require;verify-ca;verify-full
@@ -262,16 +264,4 @@ const (
 	// When server is config with this auth method. Client can't connect with pgbouncer server with password. They need
 	// to Send the client cert and client key certificate for authentication.
 	PgBouncerClientAuthModeCert PgBouncerClientAuthMode = "cert"
-)
-
-// +kubebuilder:validation:Enum=Delete;WipeOut;DoNotTerminate
-type PgBouncerTerminationPolicy string
-
-const (
-	// Deletes database pods, service, pvcs but leave the stash backup data intact.
-	PgBouncerTerminationPolicyDelete PgBouncerTerminationPolicy = "Delete"
-	// Deletes database pods, service, pvcs and stash backup data.
-	PgBouncerTerminationPolicyWipeOut PgBouncerTerminationPolicy = "WipeOut"
-	// Rejects attempt to delete database using ValidationWebhook.
-	PgBouncerTerminationPolicyDoNotTerminate PgBouncerTerminationPolicy = "DoNotTerminate"
 )

@@ -20,6 +20,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
+	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
@@ -45,6 +46,18 @@ const (
 	MSSQLServerServerCert   MSSQLServerCertificateAlias = "server"
 	MSSQLServerClientCert   MSSQLServerCertificateAlias = "client"
 	MSSQLServerEndpointCert MSSQLServerCertificateAlias = "endpoint"
+)
+
+// +kubebuilder:validation:Enum=Passive;ReadOnly;All
+type SecondaryAccessMode string
+
+const (
+	// Passive  = secondary is passive, no connections allowed
+	SecondaryAccessModePassive SecondaryAccessMode = "Passive"
+	// ReadOnly = secondary allows read-intent only
+	SecondaryAccessModeReadOnly SecondaryAccessMode = "ReadOnly"
+	// All = secondary allows any connections
+	SecondaryAccessModeAll SecondaryAccessMode = "All"
 )
 
 // MSSQLServer defines a MSSQLServer database.
@@ -89,12 +102,12 @@ type MSSQLServerSpec struct {
 	// +optional
 	AuthSecret *SecretReference `json:"authSecret,omitempty"`
 
-	// InternalAuth is used to authenticate endpoint
+	// ConfigSecret is an optional field to provide a custom configuration file for the database (i.e., mssql.conf).
+	// If specified, this file will be used as a configuration file, otherwise a default configuration file will be used.
 	// +optional
-	// +nullable
-	InternalAuth *InternalAuthentication `json:"internalAuth,omitempty"`
+	ConfigSecret *core.LocalObjectReference `json:"configSecret,omitempty"`
 
-	// Init is used to initialize database
+	// Init is used to initialize a database
 	// +optional
 	Init *InitSpec `json:"init,omitempty"`
 
@@ -103,7 +116,7 @@ type MSSQLServerSpec struct {
 	PodTemplate *ofst.PodTemplateSpec `json:"podTemplate,omitempty"`
 
 	// TLS contains tls configurations for client and server.
-	TLS *SQLServerTLSConfig `json:"tls,omitempty"`
+	TLS *MSSQLServerTLSConfig `json:"tls,omitempty"`
 
 	// ServiceTemplates is an optional configuration for services used to expose database
 	// +optional
@@ -115,31 +128,31 @@ type MSSQLServerSpec struct {
 
 	// DeletionPolicy controls the delete operation for database
 	// +optional
-	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
-
-	// Coordinator defines attributes of the coordinator container
-	// +optional
-	Coordinator CoordinatorSpec `json:"coordinator,omitempty"`
-
-	// Leader election configuration
-	// +optional
-	LeaderElection *MSSQLServerLeaderElectionConfig `json:"leaderElection,omitempty"`
+	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
 	// +kubebuilder:default={periodSeconds: 10, timeoutSeconds: 10, failureThreshold: 1}
 	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
+
+	// Monitor is used monitor database instance
+	// +optional
+	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
+
+	// Archiver controls database backup using Archiver CR
+	// +optional
+	Archiver *Archiver `json:"archiver,omitempty"`
+
+	// Arbiter controls spec for arbiter pods
+	// +optional
+	Arbiter *ArbiterSpec `json:"arbiter,omitempty"`
 }
 
-// InternalAuthentication provides different way of endpoint authentication
-type InternalAuthentication struct {
-	// EndpointCert is used for endpoint authentication of MSSql Server
-	EndpointCert *kmapi.TLSConfig `json:"endpointCert"`
-}
-
-type SQLServerTLSConfig struct {
+type MSSQLServerTLSConfig struct {
 	kmapi.TLSConfig `json:",inline"`
-	ClientTLS       bool `json:"clientTLS"`
+
+	// +optional
+	ClientTLS *bool `json:"clientTLS"`
 }
 
 type MSSQLServerTopology struct {
@@ -156,7 +169,17 @@ type MSSQLServerTopology struct {
 type MSSQLServerAvailabilityGroupSpec struct {
 	// AvailabilityDatabases is an array of databases to be included in the availability group
 	// +optional
-	Databases []string `json:"databases"`
+	Databases []string `json:"databases,omitempty"`
+
+	// Leader election configuration
+	// +optional
+	LeaderElection *MSSQLServerLeaderElectionConfig `json:"leaderElection,omitempty"`
+
+	// SecondaryAccessMode controls which connections are allowed to secondary replicas.
+	// https://learn.microsoft.com/en-us/sql/t-sql/statements/create-availability-group-transact-sql?view=sql-server-ver16#secondary_role---
+	// +optional
+	// +kubebuilder:default=Passive
+	SecondaryAccessMode SecondaryAccessMode `json:"secondaryAccessMode,omitempty"`
 }
 
 // MSSQLServerStatus defines the observed state of MSSQLServer
