@@ -18,9 +18,11 @@ package redis_finder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
 	"os"
+	"strings"
 
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 
@@ -152,9 +154,9 @@ func (r *RedisdNodeFinder) writePodDNSToFile(filename string, dnsNames []string)
 	}
 }
 
-func (r *RedisdNodeFinder) isValidAnnouncesGiven(rd *v1.Redis) bool {
+func (r *RedisdNodeFinder) getValidAnnounces(rd *v1.Redis) ([][]string, error) {
 	if rd.Spec.Cluster == nil || rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
-		return false
+		return nil, errors.New("cluster or announce shards is empty")
 	}
 	preferredEndpointType := rd.Spec.Cluster.Announce.Type
 	if preferredEndpointType == "" {
@@ -162,9 +164,16 @@ func (r *RedisdNodeFinder) isValidAnnouncesGiven(rd *v1.Redis) bool {
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
 
-	var expectedAnnounceCount = int((*rd.Spec.Cluster.Shards) * (*rd.Spec.Cluster.Replicas))
-	if len(announceList) != expectedAnnounceCount {
-		return false
+	if len(announceList) != int(*rd.Spec.Cluster.Shards) {
+		return nil, errors.New("invalid cluster or announce shards")
 	}
+
+	for i, announceListForShard := range announceList {
+		for( _, announceForReplicas := range announceListForShard.Endpoints) {
+
+		}
+
+	}
+
 
 }
