@@ -169,11 +169,20 @@ func (r *RedisdNodeFinder) getValidAnnounces(rd *v1.Redis) ([][]string, error) {
 	}
 
 	for i, announceListForShard := range announceList {
-		for( _, announceForReplicas := range announceListForShard.Endpoints) {
+		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
+		if len(announceListForShard.Endpoints) != int(*rd.Spec.Cluster.Replicas) {
+			return nil, errors.New("invalid cluster or announce shards")
+		}
+		for j, announceForReplicas := range announceListForShard.Endpoints {
+			podName := fmt.Sprintf("%s-%d", shardName, j)
+			ipPort := strings.Split(announceForReplicas, ":")
+			host := ipPort[0]
+			portBusPort := strings.Split(ipPort[1], "@")
+			port := portBusPort[0]
+			busPort := portBusPort[1]
 
 		}
 
 	}
-
 
 }
