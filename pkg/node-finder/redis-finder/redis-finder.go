@@ -45,9 +45,10 @@ type RedisdNodeFinder struct {
 	slaveFile              string
 	NodesFile              string
 	initialMasterNodesFile string
+	endpointTypeFile       string
 }
 
-func New(masterFile string, slaveFile string, nodesFile string, initialMasterNodesFile string) *RedisdNodeFinder {
+func New(masterFile string, slaveFile string, nodesFile string, initialMasterNodesFile string, endpointTypeFile string) *RedisdNodeFinder {
 	kubeConfig, err := restclient.InClusterConfig()
 	if err != nil {
 		klog.Fatalln(err)
@@ -80,6 +81,7 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 		slaveFile:              slaveFile,
 		NodesFile:              nodesFile,
 		initialMasterNodesFile: initialMasterNodesFile,
+		endpointTypeFile:       endpointTypeFile,
 	}
 }
 
@@ -144,6 +146,12 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		}
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
+
+	if db.Spec.Cluster.Announce.Type == "" {
+		db.Spec.Cluster.Announce.Type = v1.PreferredEndpointTypeIP
+	}
+	r.writeEndpointTypeToFile(r.endpointTypeFile, db.Spec.Cluster.Announce.Type)
+
 }
 
 func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {
@@ -184,6 +192,26 @@ func (r *RedisdNodeFinder) writePodDNSToFile(filename string, dnsNames []string)
 			klog.Fatalln(err)
 			return
 		}
+	}
+}
+
+func (r *RedisdNodeFinder) writeEndpointTypeToFile(filename string, endpointType v1.PreferredEndpointType) {
+	filePath := fmt.Sprintf("/tmp/%s", filename)
+	file, err := os.Create(filePath)
+	if err != nil {
+		klog.Fatalln(err)
+		return
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			klog.Fatalln(err)
+		}
+	}(file)
+	_, err = file.WriteString(string(endpointType))
+	if err != nil {
+		klog.Fatalln(err)
+		return
 	}
 }
 
