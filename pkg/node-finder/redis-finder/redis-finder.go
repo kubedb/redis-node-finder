@@ -20,13 +20,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
 	"os"
 	"strings"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
+	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v2 "k8s.io/client-go/kubernetes/typed/core/v1"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"kmodules.xyz/client-go/tools/clientcmd"
@@ -37,6 +39,7 @@ type RedisdNodeFinder struct {
 	dbGoverningServiceName string
 	RedisPort              int32
 	dbClient               *cs.Clientset
+	coreV1Client           *v2.CoreV1Client
 	RedisName              string
 	masterFile             string
 	slaveFile              string
@@ -55,6 +58,11 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 		klog.Fatalln(err)
 	}
 
+	coreV1Client, err := v2.NewForConfig(kubeConfig)
+	if err != nil {
+		klog.Fatalln(err)
+	}
+
 	namespace := os.Getenv("NAMESPACE")
 
 	envKeyDbName := "DATABASE_NAME"
@@ -64,9 +72,9 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 
 	return &RedisdNodeFinder{
 		dbClient:               dbClient,
+		coreV1Client:           coreV1Client,
 		Namespace:              namespace,
 		RedisName:              RedisName,
-		RedisPort:              6379,
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
@@ -91,24 +99,49 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writeInfoToFile(r.masterFile, dbShardCount)
 	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
-	var podList []string
-	for shardNo := 0; shardNo < dbShardCount; shardNo++ {
-		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
-
-		for podNo := 0; podNo < dbReplicaCount; podNo++ {
-			podName := fmt.Sprintf("%s-%d", shardName, podNo)
-			//dnsName := podName + "." + r.dbGoverningServiceName
-			podList = append(podList, podName)
+	dnsInfo, err := r.validGivenAnnounces(db)
+	if err != nil {
+		klog.Fatalln(err)
+		internalDnsInfo := make([]string, 0, 0)
+		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
+			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
+			for podNo := 0; podNo < dbReplicaCount; podNo++ {
+				podName := fmt.Sprintf("%s-%d", shardName, podNo)
+				dnsName := podName + "." + r.dbGoverningServiceName
+				pod, err := r.coreV1Client.Pods(r.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+				if err != nil {
+					klog.Fatalln(err)
+					return
+				}
+				dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
+				for _, container := range pod.Spec.Containers {
+					if container.Name != kubedb.RedisContainerName {
+						continue
+					}
+					for _, port := range container.Ports {
+						if port.Name == kubedb.RedisDatabasePortName {
+							dbPort = int(port.ContainerPort)
+						} else if port.Name == kubedb.RedisGossipPortName {
+							dbBusPort = int(port.ContainerPort)
+						}
+					}
+				}
+				internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", podName, dnsName, dbPort, dbBusPort))
+			}
 		}
+		dnsInfo = internalDnsInfo
 	}
 
-	r.writePodDNSToFile(r.NodesFile, redisNodes)
+	r.writePodDNSToFile(r.NodesFile, dnsInfo)
 
 	var masterNodes []string
-	for shardNO := 0; shardNO < dbShardCount; shardNO++ {
-		initialMasterPod := fmt.Sprintf("%s-shard%d-0", r.RedisName, shardNO)
-		dnsName := initialMasterPod + "." + r.dbGoverningServiceName
-		masterNodes = append(masterNodes, dnsName)
+	for _, currPodDNS := range dnsInfo {
+		infos := strings.Split(currPodDNS, " ")
+		podName := infos[0]
+		podNum := strings.Split(podName, "-")
+		if strings.Compare(podNum[len(podNum)-1], "0") == 0 {
+			masterNodes = append(masterNodes, currPodDNS)
+		}
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 }
@@ -154,35 +187,36 @@ func (r *RedisdNodeFinder) writePodDNSToFile(filename string, dnsNames []string)
 	}
 }
 
-func (r *RedisdNodeFinder) getValidAnnounces(rd *v1.Redis) ([][]string, error) {
+func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 	if rd.Spec.Cluster == nil || rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
-		return nil, errors.New("cluster or announce shards is empty")
+		return []string{}, errors.New("cluster or announce shards is empty")
 	}
 	preferredEndpointType := rd.Spec.Cluster.Announce.Type
 	if preferredEndpointType == "" {
-		preferredEndpointType = v1.PreferredEndpointTypeIP
+		preferredEndpointType = v1.PreferredEndpointTypeHostname
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
 
 	if len(announceList) != int(*rd.Spec.Cluster.Shards) {
-		return nil, errors.New("invalid cluster or announce shards")
+		return []string{}, errors.New("invalid cluster or announce shards")
 	}
+
+	dnsInfo := make([]string, 0)
 
 	for i, announceListForShard := range announceList {
-		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
 		if len(announceListForShard.Endpoints) != int(*rd.Spec.Cluster.Replicas) {
-			return nil, errors.New("invalid cluster or announce shards")
+			return []string{}, errors.New("invalid cluster or announce shards")
 		}
+		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
 		for j, announceForReplicas := range announceListForShard.Endpoints {
 			podName := fmt.Sprintf("%s-%d", shardName, j)
-			ipPort := strings.Split(announceForReplicas, ":")
-			host := ipPort[0]
-			portBusPort := strings.Split(ipPort[1], "@")
+			hostPort := strings.Split(announceForReplicas, ":")
+			host := hostPort[0]
+			portBusPort := strings.Split(hostPort[1], "@")
 			port := portBusPort[0]
 			busPort := portBusPort[1]
-
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s", podName, host, port, busPort))
 		}
-
 	}
-
+	return dnsInfo, nil
 }
