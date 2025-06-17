@@ -104,7 +104,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.validGivenAnnounces(db)
 	if err != nil {
 		klog.Fatalln(err)
-		internalDnsInfo := make([]string, 0, 0)
+		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
@@ -218,10 +218,6 @@ func (r *RedisdNodeFinder) writeEndpointTypeToFile(filename string, endpointType
 func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 	if rd.Spec.Cluster == nil || rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
 		return []string{}, errors.New("cluster or announce shards is empty")
-	}
-	preferredEndpointType := rd.Spec.Cluster.Announce.Type
-	if preferredEndpointType == "" {
-		preferredEndpointType = v1.PreferredEndpointTypeHostname
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
 
