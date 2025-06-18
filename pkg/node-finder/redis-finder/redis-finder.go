@@ -112,6 +112,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.validGivenAnnounces(db)
 	if err != nil {
 		klog.Fatalln(err)
+		klog.Fatalln("===============hello")
 		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
@@ -120,8 +121,6 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 				klog.Fatalln(err)
 				return
 			}
-			klog.Fatalln("===============hello")
-			fmt.Println("hello world")
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				dnsName := podName + "." + r.dbGoverningServiceName
