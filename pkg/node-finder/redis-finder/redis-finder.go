@@ -143,6 +143,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		dnsInfo = internalDnsInfo
 	}
 
+	fmt.Println(dnsInfo)
+
 	r.writePodDNSToFile(r.NodesFile, dnsInfo)
 
 	var masterNodes []string
