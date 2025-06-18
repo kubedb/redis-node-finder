@@ -16,6 +16,7 @@ require (
 	kmodules.xyz/client-go v0.32.1
 	kmodules.xyz/custom-resources v0.32.0
 	kubedb.dev/apimachinery v0.54.1-0.20250530075116-37965c24cc8d
+	kubeops.dev/petset v0.0.10
 )
 
 require (
@@ -119,7 +120,6 @@ require (
 	kmodules.xyz/offshoot-api v0.32.0 // indirect
 	kmodules.xyz/prober v0.32.0 // indirect
 	kmodules.xyz/resource-metadata v0.26.1 // indirect
-	kubeops.dev/petset v0.0.10 // indirect
 	kubeops.dev/sidekick v0.0.11 // indirect
 	kubestash.dev/apimachinery v0.18.0 // indirect
 	sigs.k8s.io/controller-runtime v0.20.3 // indirect

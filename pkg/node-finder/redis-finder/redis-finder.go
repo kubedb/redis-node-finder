@@ -32,6 +32,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"kmodules.xyz/client-go/tools/clientcmd"
+	psc "kubeops.dev/petset/client/clientset/versioned"
 )
 
 type RedisdNodeFinder struct {
@@ -39,6 +40,7 @@ type RedisdNodeFinder struct {
 	dbGoverningServiceName string
 	RedisPort              int32
 	dbClient               *cs.Clientset
+	psClient               *psc.Clientset
 	coreV1Client           *v2.CoreV1Client
 	RedisName              string
 	masterFile             string
@@ -59,6 +61,11 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 		klog.Fatalln(err)
 	}
 
+	psClient, err := psc.NewForConfig(kubeConfig)
+	if err != nil {
+		klog.Fatalln(err)
+	}
+
 	coreV1Client, err := v2.NewForConfig(kubeConfig)
 	if err != nil {
 		klog.Fatalln(err)
@@ -73,6 +80,7 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 
 	return &RedisdNodeFinder{
 		dbClient:               dbClient,
+		psClient:               psClient,
 		coreV1Client:           coreV1Client,
 		Namespace:              namespace,
 		RedisName:              RedisName,
@@ -107,16 +115,17 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
+			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
+			if err != nil {
+				klog.Fatalln(err)
+				return
+			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				dnsName := podName + "." + r.dbGoverningServiceName
-				pod, err := r.coreV1Client.Pods(r.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
-				if err != nil {
-					klog.Fatalln(err)
-					return
-				}
+
 				dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
-				for _, container := range pod.Spec.Containers {
+				for _, container := range petset.Spec.Template.Spec.Containers {
 					if container.Name != kubedb.RedisContainerName {
 						continue
 					}
@@ -151,7 +160,6 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		db.Spec.Cluster.Announce.Type = v1.PreferredEndpointTypeIP
 	}
 	r.writeEndpointTypeToFile(r.endpointTypeFile, db.Spec.Cluster.Announce.Type)
-
 }
 
 func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {

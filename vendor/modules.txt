@@ -1009,6 +1009,7 @@ kubedb.dev/apimachinery/pkg/double_optin
 # kubeops.dev/petset v0.0.10
 ## explicit; go 1.23.0
 kubeops.dev/petset/apis/apps/v1
+kubeops.dev/petset/client/clientset/versioned
 kubeops.dev/petset/client/clientset/versioned/scheme
 kubeops.dev/petset/client/clientset/versioned/typed/apps/v1
 kubeops.dev/petset/client/listers/apps/v1
