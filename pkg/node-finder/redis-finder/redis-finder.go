@@ -110,6 +110,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
 	dnsInfo, err := r.validGivenAnnounces(db)
+	fmt.Println("===================================before dns info")
 	if err != nil {
 		klog.Fatalln("===============hello")
 		klog.Fatalln(err)
