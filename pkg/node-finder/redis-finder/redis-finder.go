@@ -120,6 +120,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 				klog.Fatalln(err)
 				return
 			}
+			klog.Fatalln("===============hello")
+			fmt.Println("hello world")
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				dnsName := podName + "." + r.dbGoverningServiceName
