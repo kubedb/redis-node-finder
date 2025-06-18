@@ -110,10 +110,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
 	dnsInfo, err := r.validGivenAnnounces(db)
-	fmt.Println("===================================before dns info")
 	if err != nil {
-		klog.Fatalln("===============hello")
-		klog.Fatalln(err)
 		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
