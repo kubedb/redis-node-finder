@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"kubedb.dev/apimachinery/apis/kubedb"
 	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
@@ -70,6 +71,7 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 	if err != nil {
 		klog.Fatalln(err)
 	}
+	time.Sleep(time.Second * 5)
 
 	namespace := os.Getenv("NAMESPACE")
 
@@ -112,6 +114,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.validGivenAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
+		r.willForAllPodToBeCreated(db)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
@@ -121,7 +124,13 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
-				dnsName := podName + "." + r.dbGoverningServiceName
+
+				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+				if err != nil {
+					klog.Fatalln(err)
+					return
+				}
+				dnsName := pod.Status.PodIP
 
 				dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
 				for _, container := range petset.Spec.Template.Spec.Containers {
@@ -142,8 +151,6 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		dnsInfo = internalDnsInfo
 	}
 
-	fmt.Println(dnsInfo)
-
 	r.writePodDNSToFile(r.NodesFile, dnsInfo)
 
 	var masterNodes []string
@@ -157,6 +164,12 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 
+	if db.Spec.Cluster == nil {
+		db.Spec.Cluster = &v1.RedisClusterSpec{}
+	}
+	if db.Spec.Cluster.Announce == nil {
+		db.Spec.Cluster.Announce = &v1.Announce{}
+	}
 	if db.Spec.Cluster.Announce.Type == "" {
 		db.Spec.Cluster.Announce.Type = v1.PreferredEndpointTypeIP
 	}
@@ -252,4 +265,24 @@ func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 		}
 	}
 	return dnsInfo, nil
+}
+
+func (r *RedisdNodeFinder) willForAllPodToBeCreated(rd *v1.Redis) {
+	allPodsCreated := false
+	dbShardCount := int(*rd.Spec.Cluster.Shards)
+	dbReplicaCount := int(*rd.Spec.Cluster.Replicas)
+	for !allPodsCreated {
+		allPodsCreated = true
+		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
+			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
+			for podNo := 0; podNo < dbReplicaCount; podNo++ {
+				podName := fmt.Sprintf("%s-%d", shardName, podNo)
+				_, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+				if err != nil {
+					allPodsCreated = false
+					break
+				}
+			}
+		}
+	}
 }
