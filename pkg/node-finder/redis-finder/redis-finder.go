@@ -114,7 +114,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.validGivenAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
-		r.willForAllPodToBeCreated(db)
+		r.waitUntilAllPodGetItsIP(db)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
@@ -267,19 +267,19 @@ func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 	return dnsInfo, nil
 }
 
-func (r *RedisdNodeFinder) willForAllPodToBeCreated(rd *v1.Redis) {
-	allPodsCreated := false
+func (r *RedisdNodeFinder) waitUntilAllPodGetItsIP(rd *v1.Redis) {
+	assignedIpForAll := false
 	dbShardCount := int(*rd.Spec.Cluster.Shards)
 	dbReplicaCount := int(*rd.Spec.Cluster.Replicas)
-	for !allPodsCreated {
-		allPodsCreated = true
+	for !assignedIpForAll {
+		assignedIpForAll = true
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
-				_, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
-				if err != nil {
-					allPodsCreated = false
+				pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+				if err != nil || pod.Status.PodIP == "" {
+					assignedIpForAll = false
 					break
 				}
 			}
