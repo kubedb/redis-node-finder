@@ -111,10 +111,11 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	r.writeInfoToFile(r.masterFile, dbShardCount)
 	r.writeInfoToFile(r.slaveFile, dbReplicaCount-1)
 
+	r.waitUntilAllPodGetItsIP(db)
+
 	dnsInfo, err := r.validGivenAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
-		r.waitUntilAllPodGetItsIP(db)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
@@ -256,12 +257,20 @@ func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
 		for j, announceForReplicas := range announceListForShard.Endpoints {
 			podName := fmt.Sprintf("%s-%d", shardName, j)
+
+			pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+			if err != nil {
+				klog.Fatalln(err)
+				return []string{}, errors.New(fmt.Sprintf("pod not found: %s/%s", rd.Namespace, podName))
+			}
+
 			hostPort := strings.Split(announceForReplicas, ":")
 			host := hostPort[0]
 			portBusPort := strings.Split(hostPort[1], "@")
 			port := portBusPort[0]
 			busPort := portBusPort[1]
-			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s", podName, host, port, busPort))
+
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
 		}
 	}
 	return dnsInfo, nil
