@@ -111,8 +111,14 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 	r.waitUntilAllPodGetItsIP(db)
 
-	dnsInfo, err := r.validGivenAnnounces(db)
-	if err != nil {
+	dnsInfo := make([]string, 0)
+	if db.Spec.Cluster.Announce != nil {
+		dnsInfo, err = r.getAnnounces(db)
+		if err != nil {
+			klog.Fatalln(err)
+			return
+		}
+	} else {
 		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
@@ -163,9 +169,6 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 
-	if db.Spec.Cluster == nil {
-		db.Spec.Cluster = &v1.RedisClusterSpec{}
-	}
 	if db.Spec.Cluster.Announce == nil {
 		db.Spec.Cluster.Announce = &v1.Announce{}
 	}
@@ -236,8 +239,8 @@ func (r *RedisdNodeFinder) writeEndpointTypeToFile(filename string, endpointType
 	}
 }
 
-func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
-	if rd.Spec.Cluster == nil || rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
+func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
+	if rd.Spec.Cluster.Announce == nil || rd.Spec.Cluster.Announce.Shards == nil {
 		return []string{}, errors.New("cluster or announce shards is empty")
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
