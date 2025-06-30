@@ -111,7 +111,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 	r.waitUntilAllPodGetItsIP(db)
 
-	dnsInfo := make([]string, 0)
+	var dnsInfo []string
 	if db.Spec.Cluster.Announce != nil {
 		dnsInfo, err = r.getAnnounces(db)
 		if err != nil {
