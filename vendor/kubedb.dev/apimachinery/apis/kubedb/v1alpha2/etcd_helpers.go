@@ -181,8 +181,8 @@ func (e *Etcd) SetDefaults() {
 	if e.Spec.StorageType == "" {
 		e.Spec.StorageType = StorageTypeDurable
 	}
-	if e.Spec.TerminationPolicy == "" {
-		e.Spec.TerminationPolicy = TerminationPolicyDelete
+	if e.Spec.DeletionPolicy == "" {
+		e.Spec.DeletionPolicy = DeletionPolicyDelete
 	}
 
 	e.Spec.Monitor.SetDefaults()

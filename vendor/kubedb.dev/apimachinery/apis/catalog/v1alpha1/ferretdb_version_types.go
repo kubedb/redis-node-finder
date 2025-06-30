@@ -32,7 +32,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=ferretdbversions,singular=ferretdbversion,scope=Cluster,shortName=frversion,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=ferretdbversions,singular=ferretdbversion,scope=Cluster,shortName=frversion,categories={catalog,kubedb,appscode}
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="DB_IMAGE",type="string",JSONPath=".spec.db.image"
 // +kubebuilder:printcolumn:name="Deprecated",type="boolean",JSONPath=".spec.deprecated"
@@ -51,6 +51,9 @@ type FerretDBVersionSpec struct {
 	// Database Image
 	DB FerretDBVersionDatabase `json:"db"`
 
+	// Postgres version
+	Postgres FerretDBVersionPostgres `json:"postgres"`
+
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty"`
@@ -62,11 +65,19 @@ type FerretDBVersionSpec struct {
 	// SecurityContext is for the additional security information for the FerretDB container
 	// +optional
 	SecurityContext SecurityContext `json:"securityContext"`
+
+	// +optional
+	UI []ChartInfo `json:"ui,omitempty"`
 }
 
 // FerretDBVersionDatabase is the FerretDB Database image
 type FerretDBVersionDatabase struct {
 	Image string `json:"image"`
+}
+
+type FerretDBVersionPostgres struct {
+	// Which versions pg will be used as backend of ferretdb. default 13.13 when backend internally managed
+	Version string `json:"version"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

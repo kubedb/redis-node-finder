@@ -12,16 +12,18 @@ import (
 )
 
 const (
-	// PgBouncerOpsRequestTypeUpdateVersion is a PgBouncerOpsRequestType of type UpdateVersion.
-	PgBouncerOpsRequestTypeUpdateVersion PgBouncerOpsRequestType = "UpdateVersion"
 	// PgBouncerOpsRequestTypeHorizontalScaling is a PgBouncerOpsRequestType of type HorizontalScaling.
 	PgBouncerOpsRequestTypeHorizontalScaling PgBouncerOpsRequestType = "HorizontalScaling"
 	// PgBouncerOpsRequestTypeVerticalScaling is a PgBouncerOpsRequestType of type VerticalScaling.
 	PgBouncerOpsRequestTypeVerticalScaling PgBouncerOpsRequestType = "VerticalScaling"
-	// PgBouncerOpsRequestTypeRestart is a PgBouncerOpsRequestType of type Restart.
-	PgBouncerOpsRequestTypeRestart PgBouncerOpsRequestType = "Restart"
+	// PgBouncerOpsRequestTypeUpdateVersion is a PgBouncerOpsRequestType of type UpdateVersion.
+	PgBouncerOpsRequestTypeUpdateVersion PgBouncerOpsRequestType = "UpdateVersion"
 	// PgBouncerOpsRequestTypeReconfigure is a PgBouncerOpsRequestType of type Reconfigure.
 	PgBouncerOpsRequestTypeReconfigure PgBouncerOpsRequestType = "Reconfigure"
+	// PgBouncerOpsRequestTypeRotateAuth is a PgBouncerOpsRequestType of type RotateAuth.
+	PgBouncerOpsRequestTypeRotateAuth PgBouncerOpsRequestType = "RotateAuth"
+	// PgBouncerOpsRequestTypeRestart is a PgBouncerOpsRequestType of type Restart.
+	PgBouncerOpsRequestTypeRestart PgBouncerOpsRequestType = "Restart"
 	// PgBouncerOpsRequestTypeReconfigureTLS is a PgBouncerOpsRequestType of type ReconfigureTLS.
 	PgBouncerOpsRequestTypeReconfigureTLS PgBouncerOpsRequestType = "ReconfigureTLS"
 )
@@ -29,11 +31,12 @@ const (
 var ErrInvalidPgBouncerOpsRequestType = fmt.Errorf("not a valid PgBouncerOpsRequestType, try [%s]", strings.Join(_PgBouncerOpsRequestTypeNames, ", "))
 
 var _PgBouncerOpsRequestTypeNames = []string{
-	string(PgBouncerOpsRequestTypeUpdateVersion),
 	string(PgBouncerOpsRequestTypeHorizontalScaling),
 	string(PgBouncerOpsRequestTypeVerticalScaling),
-	string(PgBouncerOpsRequestTypeRestart),
+	string(PgBouncerOpsRequestTypeUpdateVersion),
 	string(PgBouncerOpsRequestTypeReconfigure),
+	string(PgBouncerOpsRequestTypeRotateAuth),
+	string(PgBouncerOpsRequestTypeRestart),
 	string(PgBouncerOpsRequestTypeReconfigureTLS),
 }
 
@@ -47,11 +50,12 @@ func PgBouncerOpsRequestTypeNames() []string {
 // PgBouncerOpsRequestTypeValues returns a list of the values for PgBouncerOpsRequestType
 func PgBouncerOpsRequestTypeValues() []PgBouncerOpsRequestType {
 	return []PgBouncerOpsRequestType{
-		PgBouncerOpsRequestTypeUpdateVersion,
 		PgBouncerOpsRequestTypeHorizontalScaling,
 		PgBouncerOpsRequestTypeVerticalScaling,
-		PgBouncerOpsRequestTypeRestart,
+		PgBouncerOpsRequestTypeUpdateVersion,
 		PgBouncerOpsRequestTypeReconfigure,
+		PgBouncerOpsRequestTypeRotateAuth,
+		PgBouncerOpsRequestTypeRestart,
 		PgBouncerOpsRequestTypeReconfigureTLS,
 	}
 }
@@ -69,11 +73,12 @@ func (x PgBouncerOpsRequestType) IsValid() bool {
 }
 
 var _PgBouncerOpsRequestTypeValue = map[string]PgBouncerOpsRequestType{
-	"UpdateVersion":     PgBouncerOpsRequestTypeUpdateVersion,
 	"HorizontalScaling": PgBouncerOpsRequestTypeHorizontalScaling,
 	"VerticalScaling":   PgBouncerOpsRequestTypeVerticalScaling,
-	"Restart":           PgBouncerOpsRequestTypeRestart,
+	"UpdateVersion":     PgBouncerOpsRequestTypeUpdateVersion,
 	"Reconfigure":       PgBouncerOpsRequestTypeReconfigure,
+	"RotateAuth":        PgBouncerOpsRequestTypeRotateAuth,
+	"Restart":           PgBouncerOpsRequestTypeRestart,
 	"ReconfigureTLS":    PgBouncerOpsRequestTypeReconfigureTLS,
 }
 

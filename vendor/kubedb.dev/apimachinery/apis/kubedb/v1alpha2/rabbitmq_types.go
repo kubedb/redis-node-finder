@@ -39,7 +39,7 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=rm,scope=Namespaced
+// +kubebuilder:resource:path=rabbitmqs,singular=rabbitmq,shortName=rm,categories={datastore,kubedb,appscode,all}
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".apiVersion"
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -54,6 +54,10 @@ type RabbitMQ struct {
 
 // RabbitMQSpec defines the desired state of RabbitMQ
 type RabbitMQSpec struct {
+	// AutoOps contains configuration of automatic ops-request-recommendation generation
+	// +optional
+	AutoOps AutoOpsSpec `json:"autoOps,omitempty"`
+
 	// Version of RabbitMQ to be deployed.
 	Version string `json:"version"`
 
@@ -100,13 +104,17 @@ type RabbitMQSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty"`
 
+	// Indicates that the RabbitMQ Protocols that are required to be disabled on bootstrap.
+	// +optional
+	DisabledProtocols []RabbitMQProtocol `json:"disabledProtocols,omitempty"`
+
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty"`
 
 	// DeletionPolicy controls the delete operation for database
 	// +optional
-	DeletionPolicy TerminationPolicy `json:"deletionPolicy,omitempty"`
+	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
 
 	// HealthChecker defines attributes of the health checker
 	// +optional
@@ -118,7 +126,7 @@ type RabbitMQSpec struct {
 type RabbitMQStatus struct {
 	// Specifies the current phase of the database
 	// +optional
-	Phase RabbitMQPhase `json:"phase,omitempty"`
+	Phase DatabasePhase `json:"phase,omitempty"`
 	// observedGeneration is the most recent generation observed for this resource. It corresponds to the
 	// resource's generation, which is updated on mutation by the API Server.
 	// +optional
@@ -126,19 +134,7 @@ type RabbitMQStatus struct {
 	// Conditions applied to the database, such as approval or denial.
 	// +optional
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
-	// +optional
-	Gateway *Gateway `json:"gateway,omitempty"`
 }
-
-// +kubebuilder:validation:Enum=Provisioning;Ready;NotReady;Critical
-type RabbitMQPhase string
-
-const (
-	RabbitmqProvisioning RabbitMQPhase = "Provisioning"
-	RabbitmqReady        RabbitMQPhase = "Ready"
-	RabbitmqNotReady     RabbitMQPhase = "NotReady"
-	RabbitmqCritical     RabbitMQPhase = "Critical"
-)
 
 // +kubebuilder:validation:Enum=ca;client;server
 type RabbitMQCertificateAlias string
@@ -147,6 +143,18 @@ const (
 	RabbitmqCACert     RabbitMQCertificateAlias = "ca"
 	RabbitmqClientCert RabbitMQCertificateAlias = "client"
 	RabbitmqServerCert RabbitMQCertificateAlias = "server"
+)
+
+// +kubebuilder:validation:Enum=http;amqp;mqtt;stomp;web_mqtt;web_stomp
+type RabbitMQProtocol string
+
+const (
+	RabbitmqProtocolHTTP     RabbitMQProtocol = "http"
+	RabbitmqProtocolAMQP     RabbitMQProtocol = "amqp"
+	RabbitmqProtocolMQTT     RabbitMQProtocol = "mqtt"
+	RabbitmqProtocolSTOMP    RabbitMQProtocol = "stomp"
+	RabbitmqProtocolWEBMQTT  RabbitMQProtocol = "web_mqtt"
+	RabbitmqProtocolWEBSTOMP RabbitMQProtocol = "web_stomp"
 )
 
 // RabbitMQList contains a list of RabbitMQ

@@ -32,15 +32,15 @@ var (
 	slaveFile         string
 	nodesFile         string
 	initialMasterFile string
+	endpointTypeFile  string
 	cmd               = &cobra.Command{
 		Use:               "run",
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(mode)
 			if mode == "cluster" {
 				fmt.Println("Running node finder for cluster mode nodes")
-				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile)
+				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile, endpointTypeFile)
 
 				c.RunRedisNodeFinder()
 			} else if mode == "sentinel" {
@@ -63,6 +63,7 @@ func init() {
 	cmd.PersistentFlags().StringVar(&slaveFile, "slave-file", "slave.txt", "Contains slave count")
 	cmd.PersistentFlags().StringVar(&nodesFile, "nodes-file", "db-nodes.txt", "Contains dns names of database nodes")
 	cmd.PersistentFlags().StringVar(&initialMasterFile, "initial-master-file", "initial-master-nodes.txt", "Contains dns names of initial masters")
+	cmd.PersistentFlags().StringVar(&endpointTypeFile, "endpoint-type-file", "endpoint-type.txt", "Contains preferred endpoint type")
 
 	cmd.PersistentFlags().StringVar(&mode, "mode", "cluster", "Contains Database Mode")
 	cmd.PersistentFlags().StringVar(&sentinelFile, "sentinel-file", "sentinel-replicas.txt", "Contains sentinel count")

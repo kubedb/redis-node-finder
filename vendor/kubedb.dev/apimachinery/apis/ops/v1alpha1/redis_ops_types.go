@@ -37,7 +37,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=redisopsrequests,singular=redisopsrequest,shortName=rdops,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=redisopsrequests,singular=redisopsrequest,shortName=rdops,categories={ops,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
@@ -67,8 +67,14 @@ type RedisOpsRequestSpec struct {
 	Configuration *RedisCustomConfigurationSpec `json:"configuration,omitempty"`
 	// Specifies information necessary for configuring TLS
 	TLS *RedisTLSSpec `json:"tls,omitempty"`
+	// Specifies information necessary for configuring authSecret of the database
+	Authentication *AuthSpec `json:"authentication,omitempty"`
 	// Specifies information necessary for restarting database
 	Restart *RestartSpec `json:"restart,omitempty"`
+	// Announce is used to announce the redis cluster endpoints.
+	// It is used to set
+	// cluster-announce-ip, cluster-announce-port, cluster-announce-bus-port, cluster-announce-tls-port
+	Announce *Announce `json:"announce,omitempty"`
 	// Specifies information necessary for replacing sentinel instances
 	Sentinel *RedisSentinelSpec `json:"sentinel,omitempty"`
 	// Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.
@@ -78,8 +84,8 @@ type RedisOpsRequestSpec struct {
 	Apply ApplyOption `json:"apply,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;VolumeExpansion;Restart;Reconfigure;ReconfigureTLS;ReplaceSentinel
-// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, VolumeExpansion, Restart, Reconfigure, ReconfigureTLS, ReplaceSentinel)
+// +kubebuilder:validation:Enum=UpdateVersion;HorizontalScaling;VerticalScaling;VolumeExpansion;Restart;Reconfigure;ReconfigureTLS;ReplaceSentinel;RotateAuth;Announce
+// ENUM(UpdateVersion, HorizontalScaling, VerticalScaling, VolumeExpansion, Restart, Reconfigure, ReconfigureTLS, ReplaceSentinel, RotateAuth, Announce)
 type RedisOpsRequestType string
 
 type RedisTLSSpec struct {
@@ -118,9 +124,9 @@ type RedisUpdateVersionSpec struct {
 }
 
 type RedisHorizontalScalingSpec struct {
-	// Number of Masters in the cluster
-	Master *int32 `json:"master,omitempty"`
-	// specifies the number of replica for the master
+	// Number of shards in the cluster
+	Shards *int32 `json:"shards,omitempty"`
+	// specifies the number of replica of the shards
 	Replicas *int32 `json:"replicas,omitempty"`
 }
 
@@ -141,6 +147,29 @@ type RedisCustomConfigurationSpec struct {
 	ConfigSecret       *core.LocalObjectReference `json:"configSecret,omitempty"`
 	ApplyConfig        map[string]string          `json:"applyConfig,omitempty"`
 	RemoveCustomConfig bool                       `json:"removeCustomConfig,omitempty"`
+}
+
+// +kubebuilder:validation:Enum=ip;hostname
+type PreferredEndpointType string
+
+const (
+	PreferredEndpointTypeIP       PreferredEndpointType = "ip"
+	PreferredEndpointTypeHostname PreferredEndpointType = "hostname"
+)
+
+type Announce struct {
+	// +kubebuilder:default=hostname
+	Type PreferredEndpointType `json:"type,omitempty"`
+	// This field is used to set cluster-announce information for redis cluster of each shard.
+	Shards []Shards `json:"shards,omitempty"`
+}
+
+type Shards struct {
+	// Endpoints contains the cluster-announce information for all the replicas in a shard.
+	// This will be used to set cluster-announce-ip/hostname, cluster-announce-port/cluster-announce-tls-port
+	// and cluster-announce-bus-port
+	// format cluster-announce (host:port@busport)
+	Endpoints []string `json:"endpoints,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

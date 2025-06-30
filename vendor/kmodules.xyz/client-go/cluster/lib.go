@@ -21,7 +21,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	kmapi "kmodules.xyz/client-go/api/v1"
@@ -34,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -56,7 +56,7 @@ func ClusterMetadata(c client.Reader) (*kmapi.ClusterMetadata, error) {
 	var cm core.ConfigMap
 	err = c.Get(context.TODO(), client.ObjectKey{Name: kmapi.AceInfoConfigMapName, Namespace: metav1.NamespacePublic}, &cm)
 	if err == nil {
-		result, err := ClusterMetadataFromConfigMap(&cm, string(ns.UID))
+		result, err := ClusterMetadataFromConfigMap(&cm, DetectClusterMode(&ns), string(ns.UID))
 		if err == nil {
 			return result, nil
 		}
@@ -65,6 +65,14 @@ func ClusterMetadata(c client.Reader) (*kmapi.ClusterMetadata, error) {
 	}
 
 	return LegacyClusterMetadataFromNamespace(&ns)
+}
+
+func DetectClusterMode(ns *core.Namespace) kmapi.ClusterMode {
+	v := ns.Annotations[kmapi.ClusterModeKey]
+	if mode, err := kmapi.ParseClusterMode(v); err == nil {
+		return mode
+	}
+	return kmapi.ClusterModeProd
 }
 
 func LegacyClusterMetadataFromNamespace(ns *core.Namespace) (*kmapi.ClusterMetadata, error) {
@@ -80,24 +88,26 @@ func LegacyClusterMetadataFromNamespace(ns *core.Namespace) (*kmapi.ClusterMetad
 		Name:        name,
 		DisplayName: ns.Annotations[kmapi.ClusterDisplayNameKey],
 		Provider:    kmapi.HostingProvider(ns.Annotations[kmapi.ClusterProviderNameKey]),
+		Mode:        DetectClusterMode(ns),
 	}
 	return md, nil
 }
 
-func ClusterMetadataFromConfigMap(cm *core.ConfigMap, clusterUIDVerifier string) (*kmapi.ClusterMetadata, error) {
+func ClusterMetadataFromConfigMap(cm *core.ConfigMap, mode kmapi.ClusterMode, clusterUIDVerifier string) (*kmapi.ClusterMetadata, error) {
 	if cm.Name != kmapi.AceInfoConfigMapName || cm.Namespace != metav1.NamespacePublic {
 		return nil, fmt.Errorf("expected configmap %s/%s, found %s/%s", metav1.NamespacePublic, kmapi.AceInfoConfigMapName, cm.Namespace, cm.Name)
 	}
 
 	md := &kmapi.ClusterMetadata{
-		UID:         cm.Data["uid"],
-		Name:        cm.Data["name"],
-		DisplayName: cm.Data["displayName"],
-		Provider:    kmapi.HostingProvider(cm.Data["provider"]),
-		OwnerID:     cm.Data["ownerID"],
-		OwnerType:   cm.Data["ownerType"],
-		APIEndpoint: cm.Data["apiEndpoint"],
-		CABundle:    cm.Data["ca.crt"],
+		UID:                  cm.Data["uid"],
+		Name:                 cm.Data["name"],
+		DisplayName:          cm.Data["displayName"],
+		Provider:             kmapi.HostingProvider(cm.Data["provider"]),
+		OwnerID:              cm.Data["ownerID"],
+		OwnerType:            cm.Data["ownerType"],
+		APIEndpoint:          cm.Data["apiEndpoint"],
+		CABundle:             cm.Data["ca.crt"],
+		CloudServiceAuthMode: cm.Data["cloudServiceAuthMode"],
 	}
 
 	data, err := json.Marshal(md)
@@ -108,13 +118,14 @@ func ClusterMetadataFromConfigMap(cm *core.ConfigMap, clusterUIDVerifier string)
 	hasher.Write(data)
 	messageMAC := hasher.Sum(nil)
 	expectedMAC := cm.BinaryData["mac"]
-	if hmac.Equal(messageMAC, expectedMAC) {
+	if !hmac.Equal(messageMAC, expectedMAC) {
 		return nil, fmt.Errorf("configmap %s/%s fails validation", cm.Namespace, cm.Name)
 	}
 
 	if md.Name == "" {
 		md.Name = ClusterName()
 	}
+	md.Mode = mode
 	return md, nil
 }
 
@@ -148,6 +159,7 @@ func UpsertClusterMetadata(kc client.Client, md *kmapi.ClusterMetadata) error {
 		cm.Data["ownerType"] = md.OwnerType
 		cm.Data["apiEndpoint"] = md.APIEndpoint
 		cm.Data["ca.crt"] = md.CABundle
+		cm.Data["cloudServiceAuthMode"] = md.CloudServiceAuthMode
 
 		cm.BinaryData = map[string][]byte{
 			"mac": messageMAC,
@@ -157,7 +169,7 @@ func UpsertClusterMetadata(kc client.Client, md *kmapi.ClusterMetadata) error {
 	return err
 }
 
-func DetectCAPICluster(kc client.Client) (*kmapi.CAPIClusterInfo, error) {
+func DetectCAPICluster(kc client.Reader) (*kmapi.CAPIClusterInfo, error) {
 	var list unstructured.UnstructuredList
 	list.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "cluster.x-k8s.io",
@@ -170,7 +182,8 @@ func DetectCAPICluster(kc client.Client) (*kmapi.CAPIClusterInfo, error) {
 	} else if err != nil {
 		return nil, err
 	} else if len(list.Items) > 1 {
-		return nil, errors.New("multiple CAPI cluster object found")
+		klog.Warningln("multiple CAPI cluster object found")
+		return nil, nil
 	}
 
 	obj := list.Items[0].UnstructuredContent()
@@ -211,14 +224,18 @@ func getCAPIValues(values map[string]any) (string, string, string, error) {
 	return capiProvider, clusterName, ns, nil
 }
 
-func getProviderName(kind string) string {
+func getProviderName(kind string) kmapi.CAPIProvider {
 	switch kind {
 	case "AWSManagedCluster", "AWSManagedControlPlane":
-		return "capa"
+		return kmapi.CAPIProviderCAPA
 	case "AzureManagedCluster":
-		return "capz"
+		return kmapi.CAPIProviderCAPZ
 	case "GCPManagedCluster":
-		return "capg"
+		return kmapi.CAPIProviderCAPG
+	case "HetznerCluster":
+		return kmapi.CAPIProviderCAPH
+	case "KubevirtCluster":
+		return kmapi.CAPIProviderCAPK
 	}
 	return ""
 }
@@ -236,7 +253,7 @@ func DetectClusterManager(kc client.Client, mappers ...meta.RESTMapper) kmapi.Cl
 	if IsOpenClusterHub(mapper) {
 		result |= kmapi.ClusterManagerOCMHub
 	}
-	if IsOpenClusterSpoke(mapper) {
+	if IsOpenClusterSpoke(kc) {
 		result |= kmapi.ClusterManagerOCMSpoke
 	}
 	if IsOpenClusterMulticlusterControlplane(mapper) {

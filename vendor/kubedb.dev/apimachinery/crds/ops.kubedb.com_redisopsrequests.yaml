@@ -9,7 +9,7 @@ spec:
   group: ops.kubedb.com
   names:
     categories:
-    - datastore
+    - ops
     - kubedb
     - appscode
     kind: RedisOpsRequest
@@ -42,12 +42,40 @@ spec:
             type: object
           spec:
             properties:
+              announce:
+                properties:
+                  shards:
+                    items:
+                      properties:
+                        endpoints:
+                          items:
+                            type: string
+                          type: array
+                      type: object
+                    type: array
+                  type:
+                    default: hostname
+                    enum:
+                    - ip
+                    - hostname
+                    type: string
+                type: object
               apply:
                 default: IfReady
                 enum:
                 - IfReady
                 - Always
                 type: string
+              authentication:
+                properties:
+                  secretRef:
+                    properties:
+                      name:
+                        default: ""
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                type: object
               configuration:
                 properties:
                   applyConfig:
@@ -73,10 +101,10 @@ spec:
                 x-kubernetes-map-type: atomic
               horizontalScaling:
                 properties:
-                  master:
+                  replicas:
                     format: int32
                     type: integer
-                  replicas:
+                  shards:
                     format: int32
                     type: integer
                 type: object
@@ -227,6 +255,8 @@ spec:
                 - Reconfigure
                 - ReconfigureTLS
                 - ReplaceSentinel
+                - RotateAuth
+                - Announce
                 type: string
               updateVersion:
                 properties:
@@ -245,6 +275,8 @@ spec:
                             items:
                               properties:
                                 name:
+                                  type: string
+                                request:
                                   type: string
                               required:
                               - name
@@ -279,6 +311,8 @@ spec:
                             items:
                               properties:
                                 name:
+                                  type: string
+                                request:
                                   type: string
                               required:
                               - name
@@ -315,6 +349,8 @@ spec:
                             items:
                               properties:
                                 name:
+                                  type: string
+                                request:
                                   type: string
                               required:
                               - name

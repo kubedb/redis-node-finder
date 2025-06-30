@@ -22,7 +22,7 @@ import (
 	core "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
-	ofst "kmodules.xyz/offshoot-api/api/v1"
+	ofst "kmodules.xyz/offshoot-api/api/v2"
 )
 
 const (
@@ -64,9 +64,14 @@ type ElasticsearchDashboardSpec struct {
 	// +optional
 	TLS *kmapi.TLSConfig `json:"tls,omitempty"`
 
+	// HealthChecker defines attributes of the health checker
+	// +optional
+	// +kubebuilder:default={periodSeconds: 20, timeoutSeconds: 10, failureThreshold: 3}
+	HealthChecker kmapi.HealthCheckSpec `json:"healthChecker"`
+
 	// TerminationPolicy controls the delete operation for Dashboard
 	// +optional
-	TerminationPolicy dbapi.DeletionPolicy `json:"terminationPolicy,omitempty"`
+	DeletionPolicy dbapi.DeletionPolicy `json:"deletionPolicy,omitempty"`
 }
 
 // ElasticsearchDashboardStatus defines the observed state of ElasticsearchDashboard
@@ -88,7 +93,7 @@ type ElasticsearchDashboardStatus struct {
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=ed,scope=Namespaced
+// +kubebuilder:resource:path=elasticsearchdashboards,singular=elasticsearchdashboard,shortName=ed,categories={esstore,kubedb,appscode}
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".apiVersion"

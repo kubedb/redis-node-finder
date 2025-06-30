@@ -18,6 +18,8 @@ limitations under the License.
 
 package v1alpha1
 
+type CassandraVersionExpansion interface{}
+
 type ClickHouseVersionExpansion interface{}
 
 type DruidVersionExpansion interface{}
@@ -27,6 +29,10 @@ type ElasticsearchVersionExpansion interface{}
 type EtcdVersionExpansion interface{}
 
 type FerretDBVersionExpansion interface{}
+
+type HazelcastVersionExpansion interface{}
+
+type IgniteVersionExpansion interface{}
 
 type KafkaConnectorVersionExpansion interface{}
 
@@ -41,6 +47,8 @@ type MemcachedVersionExpansion interface{}
 type MongoDBVersionExpansion interface{}
 
 type MySQLVersionExpansion interface{}
+
+type OracleVersionExpansion interface{}
 
 type PerconaXtraDBVersionExpansion interface{}
 

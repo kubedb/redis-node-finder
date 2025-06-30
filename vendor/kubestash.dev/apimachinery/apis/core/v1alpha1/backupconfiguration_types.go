@@ -21,7 +21,6 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
 )
@@ -113,10 +112,6 @@ type SessionConfig struct {
 	// Scheduler specifies the configuration for backup triggering CronJob
 	Scheduler *SchedulerSpec `json:"scheduler,omitempty"`
 
-	// VerificationStrategies specifies a list of backup verification configurations
-	// +optional
-	// VerificationStrategies []VerificationStrategy `json:"verificationStrategies,omitempty"`
-
 	// Hooks specifies the backup hooks that should be executed before and/or after the backup.
 	// +optional
 	Hooks *BackupHooks `json:"hooks,omitempty"`
@@ -132,10 +127,10 @@ type SessionConfig struct {
 	// +optional
 	RetryConfig *RetryConfig `json:"retryConfig,omitempty"`
 
-	// Timeout specifies the maximum duration of backup. BackupSession will be considered Failed
-	// if backup does not complete within this time limit. By default, KubeStash don't set any timeout for backup.
+	// BackupTimeout specifies the maximum duration of backup. Backup will be considered Failed
+	// if backup tasks do not complete within this time limit. By default, KubeStash don't set any timeout for backup.
 	// +optional
-	Timeout *metav1.Duration `json:"timeout,omitempty"`
+	BackupTimeout *metav1.Duration `json:"backupTimeout,omitempty"`
 
 	// SessionHistoryLimit specifies how many backup Jobs and associate resources KubeStash should keep for debugging purpose.
 	// The default value is 1.
@@ -276,6 +271,10 @@ type RepositoryInfo struct {
 	// +optional
 	Backend string `json:"backend,omitempty"`
 
+	// BackupVerifier specifies the name of the BackupVerifier which will be used to verify the backed up data in this repository.
+	// +optional
+	BackupVerifier *kmapi.ObjectReference `json:"backupVerifier,omitempty"`
+
 	// Directory specifies the path inside the backend where the backed up data will be stored.
 	Directory string `json:"directory,omitempty"`
 
@@ -286,36 +285,7 @@ type RepositoryInfo struct {
 
 	// DeletionPolicy specifies what to do when you delete a Repository CR.
 	// +optional
-	DeletionPolicy v1alpha1.DeletionPolicy `json:"deletionPolicy,omitempty"`
-}
-
-// VerificationStrategy specifies a strategy to verify the backed up data.
-type VerificationStrategy struct {
-	// Name indicate the name of this strategy
-	Name string `json:"name,omitempty"`
-
-	// Repository specifies the name of the repository which data will be verified
-	Repository string `json:"repository,omitempty"`
-
-	// Verifier refers to the BackupVerification CR that defines how to verify this particular data
-	Verifier *kmapi.TypedObjectReference `json:"verifier,omitempty"`
-
-	// Params specifies the parameters that will be used by the verifier
-	// +kubebuilder:pruning:PreserveUnknownFields
-	// +optional
-	Params *runtime.RawExtension `json:"params,omitempty"`
-
-	// VerifyEvery specifies the frequency of backup verification
-	// +kubebuilder:validation:Minimum=1
-	VerifyEvery int32 `json:"verifyEvery,omitempty"`
-
-	// OnFailure specifies what to do if the verification fail.
-	// +optional
-	OnFailure FailurePolicy `json:"onFailure,omitempty"`
-
-	// RetryConfig specifies the behavior of the retry mechanism in case of a verification failure
-	// +optional
-	RetryConfig *RetryConfig `json:"retryConfig,omitempty"`
+	DeletionPolicy v1alpha1.BackupConfigDeletionPolicy `json:"deletionPolicy,omitempty"`
 }
 
 // BackupHooks specifies the hooks that will be executed before and/or after backup
@@ -432,6 +402,10 @@ type RepoStatus struct {
 	// Reason specifies the error messages found while ensuring the respective Repository
 	// +optional
 	Reason string `json:"reason,omitempty"`
+
+	// VerificationConfigured indicates whether the verification for this repository is configured or not
+	// +optional
+	VerificationConfigured bool `json:"verificationConfigured,omitempty"`
 }
 
 // SessionStatus specifies the status of a session specific fields.
@@ -458,6 +432,11 @@ const (
 	TypeSchedulerEnsured      = "SchedulerEnsured"
 	ReasonSchedulerNotEnsured = "SchedulerNotEnsured"
 	ReasonSchedulerEnsured    = "SchedulerEnsured"
+
+	// TypeInitialBackupTriggered indicates whether the initial backup is triggered or not.
+	TypeInitialBackupTriggered               = "InitialBackupTriggered"
+	ReasonFailedToTriggerInitialBackup       = "FailedToTriggerInitialBackup"
+	ReasonSuccessfullyTriggeredInitialBackup = "SuccessfullyTriggeredInitialBackup"
 )
 
 //+kubebuilder:object:root=true

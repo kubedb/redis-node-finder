@@ -41,12 +41,12 @@ const (
 	MySQLModeSemiSync         MySQLMode = "SemiSync"
 )
 
-// +kubebuilder:validation:Enum=Single-Primary
+// +kubebuilder:validation:Enum=Single-Primary;Multi-Primary
 type MySQLGroupMode string
 
 const (
 	MySQLGroupModeSinglePrimary MySQLGroupMode = "Single-Primary"
-	// MySQLGroupModeMultiPrimary  MySQLGroupMode = "Multi-Primary"
+	MySQLGroupModeMultiPrimary  MySQLGroupMode = "Multi-Primary"
 )
 
 // Mysql defines a Mysql database.
@@ -260,8 +260,6 @@ type MySQLStatus struct {
 	Conditions []kmapi.Condition `json:"conditions,omitempty"`
 	// +optional
 	AuthSecret *Age `json:"authSecret,omitempty"`
-	// +optional
-	Gateway *Gateway `json:"gateway,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

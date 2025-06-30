@@ -255,6 +255,14 @@ func (m MongoDB) PodControllerLabels(podControllerLabels map[string]string, extr
 	return m.offshootLabels(meta_util.OverwriteKeys(m.OffshootSelectors(), extraLabels...), podControllerLabels)
 }
 
+func (m MongoDB) SidekickLabels(skName string) map[string]string {
+	return meta_util.OverwriteKeys(nil, kubedb.CommonSidekickLabels(), map[string]string{
+		meta_util.InstanceLabelKey: skName,
+		kubedb.SidekickOwnerName:   m.Name,
+		kubedb.SidekickOwnerKind:   m.ResourceFQN(),
+	})
+}
+
 func (m MongoDB) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]string) map[string]string {
 	svcTemplate := GetServiceTemplate(m.Spec.ServiceTemplates, alias)
 	return m.offshootLabels(meta_util.OverwriteKeys(m.OffshootSelectors(), extraLabels...), svcTemplate.Labels)
@@ -624,7 +632,11 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion) {
 	}
 
 	if m.Spec.SSLMode == "" {
-		m.Spec.SSLMode = SSLModeDisabled
+		if m.Spec.TLS != nil {
+			m.Spec.SSLMode = SSLModeRequireSSL
+		} else {
+			m.Spec.SSLMode = SSLModeDisabled
+		}
 	}
 
 	if (m.Spec.ReplicaSet != nil || m.Spec.ShardTopology != nil) && m.Spec.ClusterAuthMode == "" {
@@ -669,6 +681,18 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion) {
 			m.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup = mgVersion.Spec.SecurityContext.RunAsGroup
 		}
 	}
+
+	if m.Spec.Init != nil && m.Spec.Init.Archiver != nil {
+		if m.Spec.Init.Archiver.EncryptionSecret != nil && m.Spec.Init.Archiver.EncryptionSecret.Namespace == "" {
+			m.Spec.Init.Archiver.EncryptionSecret.Namespace = m.GetNamespace()
+		}
+		if m.Spec.Init.Archiver.FullDBRepository != nil && m.Spec.Init.Archiver.FullDBRepository.Namespace == "" {
+			m.Spec.Init.Archiver.FullDBRepository.Namespace = m.GetNamespace()
+		}
+		if m.Spec.Init.Archiver.ManifestRepository != nil && m.Spec.Init.Archiver.ManifestRepository.Namespace == "" {
+			m.Spec.Init.Archiver.ManifestRepository.Namespace = m.GetNamespace()
+		}
+	}
 }
 
 func (m *MongoDB) initializePodTemplates() {
@@ -709,26 +733,36 @@ func (m *MongoDB) setPodTemplateDefaultValues(podTemplate *ofstv2.PodTemplateSpe
 	m.setDefaultPodSecurityContext(mgVersion, podTemplate)
 
 	defaultResource := kubedb.DefaultResources
-	if m.isVersion6OrLater(mgVersion) {
-		defaultResource = kubedb.DefaultResourcesCPUIntensive
+	if m.isLaterVersion(mgVersion, 8) {
+		defaultResource = kubedb.DefaultResourcesCPUIntensiveMongoDBv8
+	} else if m.isLaterVersion(mgVersion, 6) {
+		defaultResource = kubedb.DefaultResourcesCPUIntensiveMongoDBv6
 	}
 
 	container := ofst_util.EnsureInitContainerExists(podTemplate, kubedb.MongoDBInitInstallContainerName)
-	m.setContainerDefaultValues(container, mgVersion, defaultResource, isArbiter...)
+	m.setContainerDefaultValues(container, mgVersion, kubedb.DefaultInitContainerResource, isArbiter...)
 
 	container = ofst_util.EnsureContainerExists(podTemplate, kubedb.MongoDBContainerName)
 	m.setContainerDefaultValues(container, mgVersion, defaultResource, isArbiter...)
 
 	if moodDetectorNeeded {
 		container = ofst_util.EnsureContainerExists(podTemplate, kubedb.ReplicationModeDetectorContainerName)
-		m.setContainerDefaultValues(container, mgVersion, defaultResource, isArbiter...)
+		m.setContainerDefaultValues(container, mgVersion, kubedb.CoordinatorDefaultResources, isArbiter...)
 	}
 }
 
 func (m *MongoDB) setContainerDefaultValues(container *core.Container, mgVersion *v1alpha1.MongoDBVersion,
 	defaultResource core.ResourceRequirements, isArbiter ...bool,
 ) {
-	m.setContainerDefaultResources(container, defaultResource)
+	if len(isArbiter) > 0 && isArbiter[0] {
+		if m.isLaterVersion(mgVersion, 7) {
+			m.setContainerDefaultResources(container, kubedb.DefaultArbiterMemoryIntensive)
+		} else {
+			m.setContainerDefaultResources(container, kubedb.DefaultArbiter(true))
+		}
+	} else {
+		m.setContainerDefaultResources(container, defaultResource)
+	}
 	if container.SecurityContext == nil {
 		container.SecurityContext = &core.SecurityContext{}
 	}
@@ -878,19 +912,19 @@ func (m *MongoDB) SetTLSDefaults() {
 	})
 }
 
-func (m *MongoDB) isVersion6OrLater(mgVersion *v1alpha1.MongoDBVersion) bool {
+func (m *MongoDB) isLaterVersion(mgVersion *v1alpha1.MongoDBVersion, version uint64) bool {
 	v, _ := semver.NewVersion(mgVersion.Spec.Version)
-	return v.Major() >= 6
+	return v.Major() >= version
 }
 
 func (m *MongoDB) GetEntryCommand(mgVersion *v1alpha1.MongoDBVersion) string {
-	if m.isVersion6OrLater(mgVersion) {
+	if m.isLaterVersion(mgVersion, 6) {
 		return "mongosh"
 	}
 	return "mongo"
 }
 
-func (m *MongoDB) getCmdForProbes(mgVersion *v1alpha1.MongoDBVersion, isArbiter ...bool) []string {
+func (m *MongoDB) getCmdForProbes(mgVersion *v1alpha1.MongoDBVersion) []string {
 	var sslArgs string
 	if m.Spec.SSLMode == SSLModeRequireSSL {
 		sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsCertificateKeyFile=%v/%v",
@@ -909,17 +943,13 @@ func (m *MongoDB) getCmdForProbes(mgVersion *v1alpha1.MongoDBVersion, isArbiter 
 		}
 	}
 
-	var authArgs string
-	if len(isArbiter) == 0 { // not arbiter
-		authArgs = "--username=$MONGO_INITDB_ROOT_USERNAME --password=$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase=admin"
-	}
 	return []string{
 		"bash",
 		"-c",
-		fmt.Sprintf(`set -x; if [[ $(%s admin --host=localhost %v %v --quiet --eval "db.adminCommand('ping').ok" ) -eq "1" ]]; then 
+		fmt.Sprintf(`set -x; if [[ $(%s admin --host=localhost %v --quiet --eval "db.adminCommand('ping').ok" ) -eq "1" ]]; then 
           exit 0
         fi
-        exit 1`, m.GetEntryCommand(mgVersion), sslArgs, authArgs),
+        exit 1`, m.GetEntryCommand(mgVersion), sslArgs),
 	}
 }
 
@@ -927,7 +957,7 @@ func (m *MongoDB) GetDefaultLivenessProbeSpec(mgVersion *v1alpha1.MongoDBVersion
 	return &core.Probe{
 		ProbeHandler: core.ProbeHandler{
 			Exec: &core.ExecAction{
-				Command: m.getCmdForProbes(mgVersion, isArbiter...),
+				Command: m.getCmdForProbes(mgVersion),
 			},
 		},
 		FailureThreshold: 3,
@@ -941,7 +971,7 @@ func (m *MongoDB) GetDefaultReadinessProbeSpec(mgVersion *v1alpha1.MongoDBVersio
 	return &core.Probe{
 		ProbeHandler: core.ProbeHandler{
 			Exec: &core.ExecAction{
-				Command: m.getCmdForProbes(mgVersion, isArbiter...),
+				Command: m.getCmdForProbes(mgVersion),
 			},
 		},
 		FailureThreshold: 3,

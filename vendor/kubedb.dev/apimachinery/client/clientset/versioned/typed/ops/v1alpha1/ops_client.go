@@ -29,10 +29,16 @@ import (
 
 type OpsV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	CassandraOpsRequestsGetter
+	ClickHouseOpsRequestsGetter
 	DruidOpsRequestsGetter
 	ElasticsearchOpsRequestsGetter
 	EtcdOpsRequestsGetter
+	FerretDBOpsRequestsGetter
+	HazelcastOpsRequestsGetter
+	IgniteOpsRequestsGetter
 	KafkaOpsRequestsGetter
+	MSSQLServerOpsRequestsGetter
 	MariaDBOpsRequestsGetter
 	MemcachedOpsRequestsGetter
 	MongoDBOpsRequestsGetter
@@ -46,11 +52,21 @@ type OpsV1alpha1Interface interface {
 	RedisOpsRequestsGetter
 	RedisSentinelOpsRequestsGetter
 	SinglestoreOpsRequestsGetter
+	SolrOpsRequestsGetter
+	ZooKeeperOpsRequestsGetter
 }
 
 // OpsV1alpha1Client is used to interact with features provided by the ops.kubedb.com group.
 type OpsV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *OpsV1alpha1Client) CassandraOpsRequests(namespace string) CassandraOpsRequestInterface {
+	return newCassandraOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) ClickHouseOpsRequests(namespace string) ClickHouseOpsRequestInterface {
+	return newClickHouseOpsRequests(c, namespace)
 }
 
 func (c *OpsV1alpha1Client) DruidOpsRequests(namespace string) DruidOpsRequestInterface {
@@ -65,8 +81,24 @@ func (c *OpsV1alpha1Client) EtcdOpsRequests(namespace string) EtcdOpsRequestInte
 	return newEtcdOpsRequests(c, namespace)
 }
 
+func (c *OpsV1alpha1Client) FerretDBOpsRequests(namespace string) FerretDBOpsRequestInterface {
+	return newFerretDBOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) HazelcastOpsRequests(namespace string) HazelcastOpsRequestInterface {
+	return newHazelcastOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) IgniteOpsRequests(namespace string) IgniteOpsRequestInterface {
+	return newIgniteOpsRequests(c, namespace)
+}
+
 func (c *OpsV1alpha1Client) KafkaOpsRequests(namespace string) KafkaOpsRequestInterface {
 	return newKafkaOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) MSSQLServerOpsRequests(namespace string) MSSQLServerOpsRequestInterface {
+	return newMSSQLServerOpsRequests(c, namespace)
 }
 
 func (c *OpsV1alpha1Client) MariaDBOpsRequests(namespace string) MariaDBOpsRequestInterface {
@@ -119,6 +151,14 @@ func (c *OpsV1alpha1Client) RedisSentinelOpsRequests(namespace string) RedisSent
 
 func (c *OpsV1alpha1Client) SinglestoreOpsRequests(namespace string) SinglestoreOpsRequestInterface {
 	return newSinglestoreOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) SolrOpsRequests(namespace string) SolrOpsRequestInterface {
+	return newSolrOpsRequests(c, namespace)
+}
+
+func (c *OpsV1alpha1Client) ZooKeeperOpsRequests(namespace string) ZooKeeperOpsRequestInterface {
+	return newZooKeeperOpsRequests(c, namespace)
 }
 
 // NewForConfig creates a new OpsV1alpha1Client for the given config.

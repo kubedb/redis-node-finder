@@ -37,7 +37,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=kafkaversions,singular=kafkaversion,scope=Cluster,shortName=kfversion,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=kafkaversions,singular=kafkaversion,scope=Cluster,shortName=kfversion,categories={catalog,kubedb,appscode}
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
 // +kubebuilder:printcolumn:name="DB_IMAGE",type="string",JSONPath=".spec.db.image"
 // +kubebuilder:printcolumn:name="Deprecated",type="boolean",JSONPath=".spec.deprecated"
@@ -52,6 +52,10 @@ type KafkaVersion struct {
 type KafkaVersionSpec struct {
 	// Version
 	Version string `json:"version"`
+	// Init Container Image
+	// From kafka version 4.0.0, we have introduced an init container to handle the database initialization.
+	// +optional
+	InitContainer KafkaInitContainer `json:"initContainer,omitempty"`
 	// Database Image
 	DB KafkaVersionDatabase `json:"db"`
 	// Connect Image
@@ -72,10 +76,17 @@ type KafkaVersionSpec struct {
 	// SecurityContext is for the additional config for the DB container
 	// +optional
 	SecurityContext SecurityContext `json:"securityContext"`
+	// +optional
+	UI []ChartInfo `json:"ui,omitempty"`
 }
 
 // KafkaVersionDatabase is the Kafka Database image
 type KafkaVersionDatabase struct {
+	Image string `json:"image"`
+}
+
+// KafkaInitContainer is the Kafka Init Container image
+type KafkaInitContainer struct {
 	Image string `json:"image"`
 }
 

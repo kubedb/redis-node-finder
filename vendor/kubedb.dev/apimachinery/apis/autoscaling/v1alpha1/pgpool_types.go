@@ -39,7 +39,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=pgpoolautoscalers,singular=pgpoolautoscaler,shortName=ppscaler,categories={datastore,kubedb,appscode}
+// +kubebuilder:resource:path=pgpoolautoscalers,singular=pgpoolautoscaler,shortName=ppscaler,categories={autoscaler,kubedb,appscode}
 // +kubebuilder:subresource:status
 type PgpoolAutoscaler struct {
 	metav1.TypeMeta `json:",inline"`
@@ -60,7 +60,7 @@ type PgpoolAutoscaler struct {
 type PgpoolAutoscalerSpec struct {
 	DatabaseRef *core.LocalObjectReference `json:"databaseRef"`
 
-	// This field will be used to control the behaviour of ops-manager
+	// OpsRequestOptions will be used to control the behaviour of ops-manager
 	OpsRequestOptions *PgpoolOpsRequestOptions `json:"opsRequestOptions,omitempty"`
 
 	Compute *PgpoolComputeAutoscalerSpec `json:"compute,omitempty"`

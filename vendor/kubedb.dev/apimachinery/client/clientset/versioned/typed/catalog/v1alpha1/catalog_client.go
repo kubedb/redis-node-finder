@@ -29,11 +29,14 @@ import (
 
 type CatalogV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	CassandraVersionsGetter
 	ClickHouseVersionsGetter
 	DruidVersionsGetter
 	ElasticsearchVersionsGetter
 	EtcdVersionsGetter
 	FerretDBVersionsGetter
+	HazelcastVersionsGetter
+	IgniteVersionsGetter
 	KafkaConnectorVersionsGetter
 	KafkaVersionsGetter
 	MSSQLServerVersionsGetter
@@ -41,6 +44,7 @@ type CatalogV1alpha1Interface interface {
 	MemcachedVersionsGetter
 	MongoDBVersionsGetter
 	MySQLVersionsGetter
+	OracleVersionsGetter
 	PerconaXtraDBVersionsGetter
 	PgBouncerVersionsGetter
 	PgpoolVersionsGetter
@@ -57,6 +61,10 @@ type CatalogV1alpha1Interface interface {
 // CatalogV1alpha1Client is used to interact with features provided by the catalog.kubedb.com group.
 type CatalogV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *CatalogV1alpha1Client) CassandraVersions() CassandraVersionInterface {
+	return newCassandraVersions(c)
 }
 
 func (c *CatalogV1alpha1Client) ClickHouseVersions() ClickHouseVersionInterface {
@@ -77,6 +85,14 @@ func (c *CatalogV1alpha1Client) EtcdVersions() EtcdVersionInterface {
 
 func (c *CatalogV1alpha1Client) FerretDBVersions() FerretDBVersionInterface {
 	return newFerretDBVersions(c)
+}
+
+func (c *CatalogV1alpha1Client) HazelcastVersions() HazelcastVersionInterface {
+	return newHazelcastVersions(c)
+}
+
+func (c *CatalogV1alpha1Client) IgniteVersions() IgniteVersionInterface {
+	return newIgniteVersions(c)
 }
 
 func (c *CatalogV1alpha1Client) KafkaConnectorVersions() KafkaConnectorVersionInterface {
@@ -105,6 +121,10 @@ func (c *CatalogV1alpha1Client) MongoDBVersions() MongoDBVersionInterface {
 
 func (c *CatalogV1alpha1Client) MySQLVersions() MySQLVersionInterface {
 	return newMySQLVersions(c)
+}
+
+func (c *CatalogV1alpha1Client) OracleVersions() OracleVersionInterface {
+	return newOracleVersions(c)
 }
 
 func (c *CatalogV1alpha1Client) PerconaXtraDBVersions() PerconaXtraDBVersionInterface {
