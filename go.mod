@@ -13,9 +13,9 @@ require (
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
 	k8s.io/klog/v2 v2.130.1
-	kmodules.xyz/client-go v0.32.1
+	kmodules.xyz/client-go v0.32.6
 	kmodules.xyz/custom-resources v0.32.0
-	kubedb.dev/apimachinery v0.54.1-0.20250530075116-37965c24cc8d
+	kubedb.dev/apimachinery v0.55.1-0.20250630110632-f2e464a5bec3
 	kubeops.dev/petset v0.0.10
 )
 
@@ -119,10 +119,10 @@ require (
 	kmodules.xyz/objectstore-api v0.32.0 // indirect
 	kmodules.xyz/offshoot-api v0.32.0 // indirect
 	kmodules.xyz/prober v0.32.0 // indirect
-	kmodules.xyz/resource-metadata v0.26.1 // indirect
+	kmodules.xyz/resource-metadata v0.30.1 // indirect
 	kubeops.dev/sidekick v0.0.11 // indirect
 	kubestash.dev/apimachinery v0.18.0 // indirect
-	sigs.k8s.io/controller-runtime v0.20.3 // indirect
+	sigs.k8s.io/controller-runtime v0.20.4 // indirect
 	sigs.k8s.io/gateway-api v1.1.0 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/kustomize/api v0.18.0 // indirect

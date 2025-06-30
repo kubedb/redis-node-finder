@@ -261,7 +261,7 @@ func (r *RedisdNodeFinder) validGivenAnnounces(rd *v1.Redis) ([]string, error) {
 			pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 			if err != nil {
 				klog.Fatalln(err)
-				return []string{}, errors.New(fmt.Sprintf("pod not found: %s/%s", rd.Namespace, podName))
+				return []string{}, fmt.Errorf("pod not found: %s/%s", rd.Namespace, podName)
 			}
 
 			hostPort := strings.Split(announceForReplicas, ":")

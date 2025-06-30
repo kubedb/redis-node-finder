@@ -564,8 +564,8 @@ k8s.io/utils v0.0.0-20241210054802-24370beab758 h1:sdbE21q2nlQtFh65saZY+rRM6x6aJ
 k8s.io/utils v0.0.0-20241210054802-24370beab758/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 kmodules.xyz/apiversion v0.2.0 h1:vAQYqZFm4xu4pbB1cAdHbFEPES6EQkcR4wc06xdTOWk=
 kmodules.xyz/apiversion v0.2.0/go.mod h1:oPX8g8LvlPdPX3Yc5YvCzJHQnw3YF/X4/jdW0b1am80=
-kmodules.xyz/client-go v0.32.1 h1:W8TWGBBaokQEqfesbdhlRFMMV0TChcRbMRQ0eTIRS88=
-kmodules.xyz/client-go v0.32.1/go.mod h1:tqe40/iDtO/RSNaDJs/a+rgnMPSOcK622HpOmOFvcds=
+kmodules.xyz/client-go v0.32.6 h1:/V9T0aLfe38PsyF+5FeU5QaC3GcqD8hQoWSCZw/uOpI=
+kmodules.xyz/client-go v0.32.6/go.mod h1:ZwLnc7UqEXUNSe43n/SnER6+7YAQCu38L2te6YefoHU=
 kmodules.xyz/custom-resources v0.32.0 h1:wzmJTtswO+OmvtqYc70pVoopZyt5UJHKTom4Jh6bfhM=
 kmodules.xyz/custom-resources v0.32.0/go.mod h1:aLFrfbUKS+AkKtxFYWpPGzuLNarRtGlkHwC07APHba8=
 kmodules.xyz/monitoring-agent-api v0.32.0 h1:cMQbWvbTc4JWeLI/zYE0HLefsdFYBzqvATLx16qCzxo=
@@ -576,10 +576,10 @@ kmodules.xyz/offshoot-api v0.32.0 h1:gogc5scSZe2JoXtZof72UGRl3Tit0kFaFRMkLLT1D8o
 kmodules.xyz/offshoot-api v0.32.0/go.mod h1:tled7OxYZ3SkUJcrVFVVYyd+zXjsRSEm1R6Q3k4gcx0=
 kmodules.xyz/prober v0.32.0 h1:8Z6pFRAu8kP0wwX2BooPCRy2SE6ZkUMHQmZDH5VUEGY=
 kmodules.xyz/prober v0.32.0/go.mod h1:h0fH4m9DaIwuNZq85zOlWUvBycyy4LvCPMUUhpS3iSE=
-kmodules.xyz/resource-metadata v0.26.1 h1:FKxvM8v5GkWWAnLHwnHGZNgewzNtKO7SDP+mRTA6M4g=
-kmodules.xyz/resource-metadata v0.26.1/go.mod h1:E4scoxcEgd7NGLU69IiS0Qh+KnwYQ/ckZtDyA8ydZKs=
-kubedb.dev/apimachinery v0.54.1-0.20250530075116-37965c24cc8d h1:nr0ismJcMHdfCxK0NYEY4CQd3GIbhlipq/AgV9UpXPc=
-kubedb.dev/apimachinery v0.54.1-0.20250530075116-37965c24cc8d/go.mod h1:ahpVjA0+WyTcXfgUE5qiSahzdWu/eIqpcRJcthWs8TM=
+kmodules.xyz/resource-metadata v0.30.1 h1:JPxjOfAYj/1VM5FONg90s99LV7ZPHh7ivaavS3Bpkr0=
+kmodules.xyz/resource-metadata v0.30.1/go.mod h1:GgA+AL58S2PlukBcnD8P6ILTtIJlp6wVuUyphR67LCY=
+kubedb.dev/apimachinery v0.55.1-0.20250630110632-f2e464a5bec3 h1:vamQ0xYsbRriksTdvg2GOLxeZAEIyYi8bGOm+Ia+tiI=
+kubedb.dev/apimachinery v0.55.1-0.20250630110632-f2e464a5bec3/go.mod h1:iiqMOpMi8H4SZkD3vw5BS3V0t2UmIde4RnotjJ7VeNE=
 kubeops.dev/petset v0.0.10 h1:sNaqmHrD9bW7pcrWnwPoiQrKvdRwRX0BaRQc5QA78Bg=
 kubeops.dev/petset v0.0.10/go.mod h1:uHL83kggwmtSxdlIfxNbY2isV22iYV6YjADv0y+Z7YA=
 kubeops.dev/sidekick v0.0.11 h1:OydXdIH6cYSiWxKIWvrywk95WhhHSERkc7RNPOmTekc=
