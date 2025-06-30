@@ -169,13 +169,12 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 
-	if db.Spec.Cluster.Announce == nil {
-		db.Spec.Cluster.Announce = &v1.Announce{}
+	endpointType := v1.PreferredEndpointTypeIP
+	if db.Spec.Cluster.Announce != nil && db.Spec.Cluster.Announce.Type != "" {
+		endpointType = db.Spec.Cluster.Announce.Type
 	}
-	if db.Spec.Cluster.Announce.Type == "" {
-		db.Spec.Cluster.Announce.Type = v1.PreferredEndpointTypeIP
-	}
-	r.writeEndpointTypeToFile(r.endpointTypeFile, db.Spec.Cluster.Announce.Type)
+
+	r.writeEndpointTypeToFile(r.endpointTypeFile, endpointType)
 }
 
 func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {
