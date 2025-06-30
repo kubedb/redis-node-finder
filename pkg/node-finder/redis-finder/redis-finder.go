@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"kubedb.dev/apimachinery/apis/kubedb"
 	v1 "kubedb.dev/apimachinery/apis/kubedb/v1"
@@ -71,7 +70,6 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 	if err != nil {
 		klog.Fatalln(err)
 	}
-	time.Sleep(time.Second * 5)
 
 	namespace := os.Getenv("NAMESPACE")
 
