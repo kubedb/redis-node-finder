@@ -111,14 +111,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 	r.waitUntilAllPodGetItsIP(db)
 
-	var dnsInfo []string
-	if db.Spec.Cluster.Announce != nil {
-		dnsInfo, err = r.getAnnounces(db)
-		if err != nil {
-			klog.Fatalln(err)
-			return
-		}
-	} else {
+	dnsInfo, err := r.getAnnounces(db)
+	if err != nil {
 		internalDnsInfo := make([]string, 0)
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
