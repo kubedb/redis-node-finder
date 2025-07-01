@@ -111,6 +111,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 	r.waitUntilAllPodGetItsIP(db)
 
+	preferredEndpointType := v1.PreferredEndpointTypeIP
+
 	dnsInfo, err := r.getAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
@@ -148,6 +150,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			}
 		}
 		dnsInfo = internalDnsInfo
+	} else {
+		preferredEndpointType = db.Spec.Cluster.Announce.Type
 	}
 
 	r.writePodDNSToFile(r.NodesFile, dnsInfo)
@@ -163,12 +167,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	}
 	r.writePodDNSToFile(r.initialMasterNodesFile, masterNodes)
 
-	endpointType := v1.PreferredEndpointTypeIP
-	if db.Spec.Cluster.Announce != nil && db.Spec.Cluster.Announce.Type != "" {
-		endpointType = db.Spec.Cluster.Announce.Type
-	}
-
-	r.writeEndpointTypeToFile(r.endpointTypeFile, endpointType)
+	r.writeEndpointTypeToFile(r.endpointTypeFile, preferredEndpointType)
 }
 
 func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {
@@ -259,8 +258,14 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 			}
 
 			hostPort := strings.Split(announceForReplicas, ":")
+			if len(hostPort) != 2 {
+				return nil, fmt.Errorf("invalid announces")
+			}
 			host := hostPort[0]
 			portBusPort := strings.Split(hostPort[1], "@")
+			if len(portBusPort) != 2 {
+				return nil, fmt.Errorf("invalid announces")
+			}
 			port := portBusPort[0]
 			busPort := portBusPort[1]
 
