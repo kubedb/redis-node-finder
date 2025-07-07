@@ -43,6 +43,7 @@ type RedisdNodeFinder struct {
 	psClient               *psc.Clientset
 	coreV1Client           *v2.CoreV1Client
 	RedisName              string
+	PodName                string
 	masterFile             string
 	slaveFile              string
 	NodesFile              string
@@ -75,6 +76,8 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 
 	envKeyDbName := "DATABASE_NAME"
 	envKeyGovService := "DATABASE_GOVERNING_SERVICE"
+	envKeyPodName := "HOSTNAME"
+	podName := os.Getenv(envKeyPodName)
 	RedisName := os.Getenv(envKeyDbName)
 	dbGoverningServiceName := os.Getenv(envKeyGovService)
 
@@ -84,6 +87,7 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 		coreV1Client:           coreV1Client,
 		Namespace:              namespace,
 		RedisName:              RedisName,
+		PodName:                podName,
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
@@ -116,6 +120,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.getAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
+		tookCurrentPodInfo := false
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
@@ -125,6 +130,10 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
+
+				if podName == r.PodName {
+					tookCurrentPodInfo = true
+				}
 
 				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 				if err != nil {
@@ -148,6 +157,29 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 				}
 				internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", podName, dnsName, dbPort, dbBusPort))
 			}
+		}
+		if !tookCurrentPodInfo {
+			pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), r.PodName, metav1.GetOptions{})
+			if err != nil {
+				klog.Fatalln(err)
+				return
+			}
+			dnsName := pod.Status.PodIP
+
+			dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
+			for _, container := range pod.Spec.Containers {
+				if container.Name != kubedb.RedisContainerName {
+					continue
+				}
+				for _, port := range container.Ports {
+					if port.Name == kubedb.RedisDatabasePortName {
+						dbPort = int(port.ContainerPort)
+					} else if port.Name == kubedb.RedisGossipPortName {
+						dbBusPort = int(port.ContainerPort)
+					}
+				}
+			}
+			internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", r.PodName, dnsName, dbPort, dbBusPort))
 		}
 		dnsInfo = internalDnsInfo
 	} else {
