@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"kubedb.dev/apimachinery/apis/kubedb"
@@ -269,14 +270,15 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
 
-	if len(announceList) != int(*rd.Spec.Cluster.Shards) {
+	if len(announceList) < int(*rd.Spec.Cluster.Shards) {
 		return []string{}, errors.New("invalid cluster or announce shards")
 	}
 
 	dnsInfo := make([]string, 0)
+	tookCurrentPodInfo := false
 
 	for i, announceListForShard := range announceList {
-		if len(announceListForShard.Endpoints) != int(*rd.Spec.Cluster.Replicas) {
+		if len(announceListForShard.Endpoints) < int(*rd.Spec.Cluster.Replicas) {
 			return []string{}, errors.New("invalid cluster or announce shards")
 		}
 		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
@@ -287,6 +289,9 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 			if err != nil {
 				klog.Fatalln(err)
 				return []string{}, fmt.Errorf("pod not found: %s/%s", rd.Namespace, podName)
+			}
+			if podName == r.PodName {
+				tookCurrentPodInfo = true
 			}
 
 			hostPort := strings.Split(announceForReplicas, ":")
@@ -304,6 +309,46 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
 		}
 	}
+
+	if !tookCurrentPodInfo {
+		shardPodSeqSplit := strings.Split(r.PodName, "-")
+		podSeqNum, err := strconv.Atoi(shardPodSeqSplit[len(shardPodSeqSplit)-1])
+		if err != nil {
+			return nil, err
+		}
+		shardNameSeqSplit := strings.Split(shardPodSeqSplit[len(shardPodSeqSplit)-2], "shard")
+		shardSeq, err := strconv.Atoi(shardNameSeqSplit[len(shardNameSeqSplit)-1])
+		if err != nil {
+			return nil, err
+		}
+		if len(announceList) <= shardSeq {
+			return []string{}, errors.New("invalid cluster or announce shards")
+		}
+		if len(announceList[shardSeq].Endpoints) <= podSeqNum {
+			return []string{}, errors.New("invalid cluster or announce shards")
+		}
+
+		pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), r.PodName, metav1.GetOptions{})
+		if err != nil {
+			klog.Fatalln(err)
+			return []string{}, fmt.Errorf("pod not found: %s/%s", rd.Namespace, r.PodName)
+		}
+
+		hostPort := strings.Split(announceList[shardSeq].Endpoints[podSeqNum], ":")
+		if len(hostPort) != 2 {
+			return nil, fmt.Errorf("invalid announces")
+		}
+		host := hostPort[0]
+		portBusPort := strings.Split(hostPort[1], "@")
+		if len(portBusPort) != 2 {
+			return nil, fmt.Errorf("invalid announces")
+		}
+		port := portBusPort[0]
+		busPort := portBusPort[1]
+
+		dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
+	}
+
 	return dnsInfo, nil
 }
 
