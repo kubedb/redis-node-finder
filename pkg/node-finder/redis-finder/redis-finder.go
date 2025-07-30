@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	v3 "kmodules.xyz/client-go/core/v1"
 	"os"
 	"strconv"
 	"strings"
@@ -33,6 +32,7 @@ import (
 	v2 "k8s.io/client-go/kubernetes/typed/core/v1"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
+	v3 "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/clientcmd"
 	psc "kubeops.dev/petset/client/clientset/versioned"
 )
