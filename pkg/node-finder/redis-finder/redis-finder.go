@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	v3 "kmodules.xyz/client-go/core/v1"
 	"os"
 	"strconv"
 	"strings"
@@ -168,16 +169,13 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			dnsName := pod.Status.PodIP
 
 			dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
-			for _, container := range pod.Spec.Containers {
-				if container.Name != kubedb.RedisContainerName {
-					continue
-				}
-				for _, port := range container.Ports {
-					if port.Name == kubedb.RedisDatabasePortName {
-						dbPort = int(port.ContainerPort)
-					} else if port.Name == kubedb.RedisGossipPortName {
-						dbBusPort = int(port.ContainerPort)
-					}
+
+			rdCont := v3.GetContainerByName(pod.Spec.Containers, kubedb.RedisContainerName)
+			for _, port := range rdCont.Ports {
+				if port.Name == kubedb.RedisDatabasePortName {
+					dbPort = int(port.ContainerPort)
+				} else if port.Name == kubedb.RedisGossipPortName {
+					dbBusPort = int(port.ContainerPort)
 				}
 			}
 			internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", r.PodName, dnsName, dbPort, dbBusPort))
@@ -344,27 +342,28 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 		needPodFQDN := false
 		if len(announceList) <= shardSeq {
 			needPodFQDN = true
-		} else {
-			if len(announceList[shardSeq].Endpoints) <= podSeqNum {
-				needPodFQDN = true
-			} else {
-				hostPort := strings.Split(announceList[shardSeq].Endpoints[podSeqNum], ":")
-				if len(hostPort) != 2 {
-					needPodFQDN = true
-				} else {
-					host := hostPort[0]
-					portBusPort := strings.Split(hostPort[1], "@")
-					if len(portBusPort) != 2 {
-						needPodFQDN = true
-					} else {
-						port := portBusPort[0]
-						busPort := portBusPort[1]
-
-						dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
-					}
-				}
-			}
+			goto invalidDns
 		}
+		if len(announceList[shardSeq].Endpoints) <= podSeqNum {
+			needPodFQDN = true
+			goto invalidDns
+		} else {
+			hostPort := strings.Split(announceList[shardSeq].Endpoints[podSeqNum], ":")
+			if len(hostPort) != 2 {
+				needPodFQDN = true
+				goto invalidDns
+			}
+			host := hostPort[0]
+			portBusPort := strings.Split(hostPort[1], "@")
+			if len(portBusPort) != 2 {
+				needPodFQDN = true
+				goto invalidDns
+			}
+			port := portBusPort[0]
+			busPort := portBusPort[1]
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
+		}
+	invalidDns:
 
 		if needPodFQDN {
 			host := fmt.Sprintf("%s.%s-pods.%s.svc", r.PodName, r.RedisName, r.Namespace)
@@ -375,9 +374,7 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 			}
 			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
 		}
-
 	}
-
 	return dnsInfo, nil
 }
 
