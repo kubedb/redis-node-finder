@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"kubedb.dev/apimachinery/apis/kubedb"
@@ -31,6 +32,7 @@ import (
 	v2 "k8s.io/client-go/kubernetes/typed/core/v1"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
+	v3 "kmodules.xyz/client-go/core/v1"
 	"kmodules.xyz/client-go/tools/clientcmd"
 	psc "kubeops.dev/petset/client/clientset/versioned"
 )
@@ -43,6 +45,7 @@ type RedisdNodeFinder struct {
 	psClient               *psc.Clientset
 	coreV1Client           *v2.CoreV1Client
 	RedisName              string
+	PodName                string
 	masterFile             string
 	slaveFile              string
 	NodesFile              string
@@ -75,6 +78,8 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 
 	envKeyDbName := "DATABASE_NAME"
 	envKeyGovService := "DATABASE_GOVERNING_SERVICE"
+	envKeyPodName := "HOSTNAME"
+	podName := os.Getenv(envKeyPodName)
 	RedisName := os.Getenv(envKeyDbName)
 	dbGoverningServiceName := os.Getenv(envKeyGovService)
 
@@ -84,6 +89,7 @@ func New(masterFile string, slaveFile string, nodesFile string, initialMasterNod
 		coreV1Client:           coreV1Client,
 		Namespace:              namespace,
 		RedisName:              RedisName,
+		PodName:                podName,
 		dbGoverningServiceName: dbGoverningServiceName,
 		masterFile:             masterFile,
 		slaveFile:              slaveFile,
@@ -116,6 +122,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 	dnsInfo, err := r.getAnnounces(db)
 	if err != nil {
 		internalDnsInfo := make([]string, 0)
+		tookCurrentPodInfo := false
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
@@ -125,6 +132,10 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
+
+				if podName == r.PodName {
+					tookCurrentPodInfo = true
+				}
 
 				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 				if err != nil {
@@ -148,6 +159,26 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 				}
 				internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", podName, dnsName, dbPort, dbBusPort))
 			}
+		}
+		if !tookCurrentPodInfo {
+			pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), r.PodName, metav1.GetOptions{})
+			if err != nil {
+				klog.Fatalln(err)
+				return
+			}
+			dnsName := pod.Status.PodIP
+
+			dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
+
+			rdCont := v3.GetContainerByName(pod.Spec.Containers, kubedb.RedisContainerName)
+			for _, port := range rdCont.Ports {
+				if port.Name == kubedb.RedisDatabasePortName {
+					dbPort = int(port.ContainerPort)
+				} else if port.Name == kubedb.RedisGossipPortName {
+					dbBusPort = int(port.ContainerPort)
+				}
+			}
+			internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", r.PodName, dnsName, dbPort, dbBusPort))
 		}
 		dnsInfo = internalDnsInfo
 	} else {
@@ -237,18 +268,21 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 	}
 	announceList := rd.Spec.Cluster.Announce.Shards
 
-	if len(announceList) != int(*rd.Spec.Cluster.Shards) {
+	prfrdEnType := rd.Spec.Cluster.Announce.Type
+
+	if len(announceList) < int(*rd.Spec.Cluster.Shards) {
 		return []string{}, errors.New("invalid cluster or announce shards")
 	}
 
 	dnsInfo := make([]string, 0)
+	tookCurrentPodInfo := false
 
-	for i, announceListForShard := range announceList {
-		if len(announceListForShard.Endpoints) != int(*rd.Spec.Cluster.Replicas) {
+	for i := range *rd.Spec.Cluster.Shards {
+		if len(announceList[i].Endpoints) < int(*rd.Spec.Cluster.Replicas) {
 			return []string{}, errors.New("invalid cluster or announce shards")
 		}
 		shardName := fmt.Sprintf("%s-shard%d", r.RedisName, i)
-		for j, announceForReplicas := range announceListForShard.Endpoints {
+		for j := range *rd.Spec.Cluster.Replicas {
 			podName := fmt.Sprintf("%s-%d", shardName, j)
 
 			pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
@@ -256,20 +290,89 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 				klog.Fatalln(err)
 				return []string{}, fmt.Errorf("pod not found: %s/%s", rd.Namespace, podName)
 			}
+			if podName == r.PodName {
+				tookCurrentPodInfo = true
+			}
 
-			hostPort := strings.Split(announceForReplicas, ":")
+			needPodFQDN := false
+
+			hostPort := strings.Split(announceList[i].Endpoints[j], ":")
+			if len(hostPort) == 2 {
+				host := hostPort[0]
+				portBusPort := strings.Split(hostPort[1], "@")
+				if len(portBusPort) == 2 {
+					port := portBusPort[0]
+					busPort := portBusPort[1]
+					dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
+				} else {
+					needPodFQDN = true
+				}
+			} else {
+				needPodFQDN = true
+			}
+
+			if needPodFQDN {
+				host := fmt.Sprintf("%s.%s-pods.%s.svc", podName, r.RedisName, r.Namespace)
+				port := "6379"
+				busPort := "16379"
+				if prfrdEnType == v1.PreferredEndpointTypeIP {
+					host = pod.Status.PodIP
+				}
+				dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
+			}
+		}
+	}
+
+	if !tookCurrentPodInfo {
+		pod, err := r.coreV1Client.Pods(rd.Namespace).Get(context.TODO(), r.PodName, metav1.GetOptions{})
+		if err != nil {
+			klog.Fatalln(err)
+			return []string{}, fmt.Errorf("pod not found: %s/%s", rd.Namespace, r.PodName)
+		}
+		shardPodSeqSplit := strings.Split(r.PodName, "-")
+		podSeqNum, err := strconv.Atoi(shardPodSeqSplit[len(shardPodSeqSplit)-1])
+		if err != nil {
+			return nil, err
+		}
+		shardNameSeqSplit := strings.Split(shardPodSeqSplit[len(shardPodSeqSplit)-2], "shard")
+		shardSeq, err := strconv.Atoi(shardNameSeqSplit[len(shardNameSeqSplit)-1])
+		if err != nil {
+			return nil, err
+		}
+		needPodFQDN := false
+		if len(announceList) <= shardSeq {
+			needPodFQDN = true
+			goto invalidDns
+		}
+		if len(announceList[shardSeq].Endpoints) <= podSeqNum {
+			needPodFQDN = true
+			goto invalidDns
+		} else {
+			hostPort := strings.Split(announceList[shardSeq].Endpoints[podSeqNum], ":")
 			if len(hostPort) != 2 {
-				return nil, fmt.Errorf("invalid announces")
+				needPodFQDN = true
+				goto invalidDns
 			}
 			host := hostPort[0]
 			portBusPort := strings.Split(hostPort[1], "@")
 			if len(portBusPort) != 2 {
-				return nil, fmt.Errorf("invalid announces")
+				needPodFQDN = true
+				goto invalidDns
 			}
 			port := portBusPort[0]
 			busPort := portBusPort[1]
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
+		}
+	invalidDns:
 
-			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
+		if needPodFQDN {
+			host := fmt.Sprintf("%s.%s-pods.%s.svc", r.PodName, r.RedisName, r.Namespace)
+			port := "6379"
+			busPort := "16379"
+			if prfrdEnType == v1.PreferredEndpointTypeIP {
+				host = pod.Status.PodIP
+			}
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
 		}
 	}
 	return dnsInfo, nil
