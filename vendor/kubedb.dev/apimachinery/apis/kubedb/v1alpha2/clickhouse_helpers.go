@@ -105,10 +105,6 @@ func (c *ClickHouse) OffshootLabels() map[string]string {
 	return c.offshootLabels(c.OffshootSelectors(), nil)
 }
 
-func (c *ClickHouse) OffshootDBLabels() map[string]string {
-	return c.offshootLabels(c.OffshootDBSelectors(), nil)
-}
-
 func (c *ClickHouse) ServiceLabels(alias ServiceAlias, extraLabels ...map[string]string) map[string]string {
 	svcTemplate := GetServiceTemplate(c.Spec.ServiceTemplates, alias)
 	return c.offshootLabels(meta_util.OverwriteKeys(c.OffshootSelectors(), extraLabels...), svcTemplate.Labels)
@@ -190,12 +186,8 @@ func (c *ClickHouse) KeeperGoverningServiceName() string {
 	return meta_util.NameWithSuffix(c.KeeperServiceName(), "pods")
 }
 
-func (c *ClickHouse) ClusterGoverningServiceName(name string) string {
-	return meta_util.NameWithSuffix(name, "pods")
-}
-
-func (c *ClickHouse) ClusterGoverningServiceDNS(petSetName string, replicaNo int) string {
-	return fmt.Sprintf("%s-%d.%s.%s.svc", petSetName, replicaNo, c.GoverningServiceName(), c.GetNamespace())
+func (c *ClickHouse) GoverningServiceDNS(podName string) string {
+	return fmt.Sprintf("%s.%s.%s.svc", podName, c.GoverningServiceName(), c.GetNamespace())
 }
 
 func (c *ClickHouse) GetAuthSecretName() string {
@@ -323,6 +315,14 @@ func (c *ClickHouse) StatsServiceLabels() map[string]string {
 	return c.ServiceLabels(StatsServiceAlias, map[string]string{kubedb.LabelRole: kubedb.RoleStats})
 }
 
+func (r *ClickHouse) SetTLSDefaults() {
+	if r.Spec.TLS == nil || r.Spec.TLS.IssuerRef == nil {
+		return
+	}
+	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(ClickHouseServerCert), r.CertificateName(ClickHouseServerCert))
+	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(ClickHouseClientCert), r.CertificateName(ClickHouseClientCert))
+}
+
 func (c *ClickHouse) SetDefaults(kc client.Client) {
 	var chVersion catalog.ClickHouseVersion
 	err := kc.Get(context.TODO(), types.NamespacedName{
@@ -332,6 +332,16 @@ func (c *ClickHouse) SetDefaults(kc client.Client) {
 		klog.Errorf("can't get the clickhouse version object %s for %s \n", err.Error(), c.Spec.Version)
 		return
 	}
+
+	if !c.Spec.DisableSecurity {
+		if c.Spec.AuthSecret == nil {
+			c.Spec.AuthSecret = &SecretReference{}
+		}
+		if c.Spec.AuthSecret.Kind == "" {
+			c.Spec.AuthSecret.Kind = kubedb.ResourceKindSecret
+		}
+	}
+
 	if c.Spec.TLS != nil {
 		if c.Spec.TLS.ClientCACertificateRefs != nil {
 			for i, secret := range c.Spec.TLS.ClientCACertificateRefs {
@@ -350,41 +360,38 @@ func (c *ClickHouse) SetDefaults(kc client.Client) {
 
 	if c.Spec.ClusterTopology != nil {
 		clusterName := map[string]bool{}
-		clusters := c.Spec.ClusterTopology.Cluster
-		for index, cluster := range clusters {
-			if cluster.Shards == nil {
-				cluster.Shards = pointer.Int32P(1)
-			}
-			if cluster.Replicas == nil {
-				cluster.Replicas = pointer.Int32P(1)
-			}
-			if cluster.Name == "" {
-				for i := 1; ; i += 1 {
-					cluster.Name = c.OffshootClusterName(strconv.Itoa(i))
-					if !clusterName[cluster.Name] {
-						clusterName[cluster.Name] = true
-						break
-					}
-				}
-			} else {
-				clusterName[cluster.Name] = true
-			}
-			if cluster.StorageType == "" {
-				cluster.StorageType = StorageTypeDurable
-			}
-
-			if cluster.PodTemplate == nil {
-				cluster.PodTemplate = &ofst.PodTemplateSpec{}
-			}
-
-			dbContainer := coreutil.GetContainerByName(cluster.PodTemplate.Spec.Containers, kubedb.ClickHouseContainerName)
-			if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
-				apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.ClickHouseDefaultResources)
-			}
-			c.setDefaultContainerSecurityContext(&chVersion, cluster.PodTemplate)
-			clusters[index] = cluster
+		cluster := c.Spec.ClusterTopology.Cluster
+		if cluster.Shards == nil {
+			cluster.Shards = pointer.Int32P(1)
 		}
-		c.Spec.ClusterTopology.Cluster = clusters
+		if cluster.Replicas == nil {
+			cluster.Replicas = pointer.Int32P(1)
+		}
+		if cluster.Name == "" {
+			for i := 1; ; i += 1 {
+				cluster.Name = c.OffshootClusterName(strconv.Itoa(i))
+				if !clusterName[cluster.Name] {
+					clusterName[cluster.Name] = true
+					break
+				}
+			}
+		} else {
+			clusterName[cluster.Name] = true
+		}
+		if cluster.StorageType == "" {
+			cluster.StorageType = StorageTypeDurable
+		}
+
+		if cluster.PodTemplate == nil {
+			cluster.PodTemplate = &ofst.PodTemplateSpec{}
+		}
+
+		dbContainer := coreutil.GetContainerByName(cluster.PodTemplate.Spec.Containers, kubedb.ClickHouseContainerName)
+		if dbContainer != nil && (dbContainer.Resources.Requests == nil && dbContainer.Resources.Limits == nil) {
+			apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.ClickHouseDefaultResources)
+		}
+		c.setDefaultContainerSecurityContext(&chVersion, cluster.PodTemplate)
+		c.Spec.ClusterTopology.Cluster = cluster
 
 		if c.Spec.ClusterTopology.ClickHouseKeeper != nil && !c.Spec.ClusterTopology.ClickHouseKeeper.ExternallyManaged && c.Spec.ClusterTopology.ClickHouseKeeper.Spec != nil {
 			if c.Spec.ClusterTopology.ClickHouseKeeper.Spec.Replicas == nil {
@@ -424,7 +431,25 @@ func (c *ClickHouse) SetDefaults(kc client.Client) {
 			apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.ClickHouseDefaultResources)
 		}
 	}
+	c.SetTLSDefaults()
 	c.SetHealthCheckerDefaults()
+	if c.Spec.Monitor != nil {
+		if c.Spec.Monitor.Prometheus == nil {
+			c.Spec.Monitor.Prometheus = &mona.PrometheusSpec{}
+		}
+		if c.Spec.Monitor.Prometheus != nil && c.Spec.Monitor.Prometheus.Exporter.Port == 0 {
+			c.Spec.Monitor.Prometheus.Exporter.Port = kubedb.ClickhousePromethues
+		}
+		c.Spec.Monitor.SetDefaults()
+		if c.Spec.Monitor.Prometheus != nil {
+			if c.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsUser == nil {
+				c.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsUser = chVersion.Spec.SecurityContext.RunAsUser
+			}
+			if c.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup == nil {
+				c.Spec.Monitor.Prometheus.Exporter.SecurityContext.RunAsGroup = chVersion.Spec.SecurityContext.RunAsUser
+			}
+		}
+	}
 }
 
 func (c *ClickHouse) setDefaultContainerSecurityContext(chVersion *catalog.ClickHouseVersion, podTemplate *ofst.PodTemplateSpec) {
@@ -527,9 +552,7 @@ func (c *ClickHouse) ReplicasAreReady(lister pslister.PetSetLister) (bool, strin
 	// Desire number of petSets
 	expectedItems := 0
 	if c.Spec.ClusterTopology != nil {
-		for _, cluster := range c.Spec.ClusterTopology.Cluster {
-			expectedItems += int(*cluster.Shards)
-		}
+		expectedItems += int(*c.Spec.ClusterTopology.Cluster.Shards)
 		if c.Spec.ClusterTopology.ClickHouseKeeper != nil && !c.Spec.ClusterTopology.ClickHouseKeeper.ExternallyManaged {
 			if c.Spec.ClusterTopology.ClickHouseKeeper.Spec.Replicas != nil {
 				expectedItems += 1

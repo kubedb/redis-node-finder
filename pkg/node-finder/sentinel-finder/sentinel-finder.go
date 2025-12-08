@@ -86,7 +86,7 @@ func (r *SentinelReplicaFinder) writeInfoToFile(filename string, count int) {
 			klog.Fatalln(err)
 		}
 	}(file)
-	_, err = file.WriteString(fmt.Sprintf("%d\n", count))
+	_, err = fmt.Fprintf(file, "%d\n", count)
 	if err != nil {
 		klog.Fatalln(err)
 	}

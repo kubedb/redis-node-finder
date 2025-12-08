@@ -116,6 +116,15 @@ func (i *Ignite) SetDefaults(kc client.Client) {
 		i.Spec.StorageType = StorageTypeDurable
 	}
 
+	if !i.Spec.DisableSecurity {
+		if i.Spec.AuthSecret == nil {
+			i.Spec.AuthSecret = &SecretReference{}
+		}
+		if i.Spec.AuthSecret.Kind == "" {
+			i.Spec.AuthSecret.Kind = kubedb.ResourceKindSecret
+		}
+	}
+
 	var igVersion catalog.IgniteVersion
 	err := kc.Get(context.TODO(), types.NamespacedName{
 		Name: i.Spec.Version,
@@ -128,7 +137,7 @@ func (i *Ignite) SetDefaults(kc client.Client) {
 
 	dbContainer := coreutil.GetContainerByName(i.Spec.PodTemplate.Spec.Containers, kubedb.IgniteContainerName)
 	if dbContainer != nil && (dbContainer.Resources.Requests == nil || dbContainer.Resources.Limits == nil) {
-		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.DefaultResources)
+		apis.SetDefaultResourceLimits(&dbContainer.Resources, kubedb.IgniteDefaultResources)
 	}
 
 	i.SetHealthCheckerDefaults()
@@ -270,11 +279,11 @@ func (i *Ignite) ConfigSecretName() string {
 }
 
 func (i *Ignite) PVCName(alias string) string {
-	return meta_util.NameWithSuffix(i.Name, alias)
+	return alias
 }
 
 func (i *Ignite) Address() string {
-	return fmt.Sprintf("%v.%v.svc.cluster.local", i.Name, i.Namespace)
+	return fmt.Sprintf("%v.%v.svc", i.Name, i.Namespace)
 }
 
 type igniteStatsService struct {
