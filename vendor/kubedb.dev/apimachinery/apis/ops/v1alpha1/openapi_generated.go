@@ -454,15 +454,19 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.StashAddonSpec":                      schema_custom_resources_apis_appcatalog_v1alpha1_StashAddonSpec(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.StashTaskSpec":                       schema_custom_resources_apis_appcatalog_v1alpha1_StashTaskSpec(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TaskRef":                             schema_custom_resources_apis_appcatalog_v1alpha1_TaskRef(ref),
+		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference":           schema_custom_resources_apis_appcatalog_v1alpha1_TypedLocalObjectReference(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.AgentSpec":                                         schema_kmodulesxyz_monitoring_agent_api_api_v1_AgentSpec(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.AlertPreset":                                       schema_kmodulesxyz_monitoring_agent_api_api_v1_AlertPreset(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.BasicAuth":                                         schema_kmodulesxyz_monitoring_agent_api_api_v1_BasicAuth(ref),
+		"kmodules.xyz/monitoring-agent-api/api/v1.ClientConfig":                                      schema_kmodulesxyz_monitoring_agent_api_api_v1_ClientConfig(ref),
+		"kmodules.xyz/monitoring-agent-api/api/v1.ConnectionSpec":                                    schema_kmodulesxyz_monitoring_agent_api_api_v1_ConnectionSpec(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.DashboardSpec":                                     schema_kmodulesxyz_monitoring_agent_api_api_v1_DashboardSpec(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.GrafanaConfig":                                     schema_kmodulesxyz_monitoring_agent_api_api_v1_GrafanaConfig(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.GrafanaContext":                                    schema_kmodulesxyz_monitoring_agent_api_api_v1_GrafanaContext(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.MonitoringPresets":                                 schema_kmodulesxyz_monitoring_agent_api_api_v1_MonitoringPresets(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.MonitoringPresetsForm":                             schema_kmodulesxyz_monitoring_agent_api_api_v1_MonitoringPresetsForm(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.MonitoringPresetsSpec":                             schema_kmodulesxyz_monitoring_agent_api_api_v1_MonitoringPresetsSpec(ref),
+		"kmodules.xyz/monitoring-agent-api/api/v1.Prometheus":                                        schema_kmodulesxyz_monitoring_agent_api_api_v1_Prometheus(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.PrometheusConfig":                                  schema_kmodulesxyz_monitoring_agent_api_api_v1_PrometheusConfig(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.PrometheusContext":                                 schema_kmodulesxyz_monitoring_agent_api_api_v1_PrometheusContext(ref),
 		"kmodules.xyz/monitoring-agent-api/api/v1.PrometheusExporterSpec":                            schema_kmodulesxyz_monitoring_agent_api_api_v1_PrometheusExporterSpec(ref),
@@ -512,11 +516,15 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.CassandraUpdateVersionSpec":                       schema_apimachinery_apis_ops_v1alpha1_CassandraUpdateVersionSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.CassandraVerticalScalingSpec":                     schema_apimachinery_apis_ops_v1alpha1_CassandraVerticalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.CassandraVolumeExpansionSpec":                     schema_apimachinery_apis_ops_v1alpha1_CassandraVolumeExpansionSpec(ref),
-		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseClusterVerticalScalingSpec":             schema_apimachinery_apis_ops_v1alpha1_ClickHouseClusterVerticalScalingSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseCustomConfigurationSpec":                schema_apimachinery_apis_ops_v1alpha1_ClickHouseCustomConfigurationSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseHorizontalScalingSpec":                  schema_apimachinery_apis_ops_v1alpha1_ClickHouseHorizontalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseOpsRequest":                             schema_apimachinery_apis_ops_v1alpha1_ClickHouseOpsRequest(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseOpsRequestList":                         schema_apimachinery_apis_ops_v1alpha1_ClickHouseOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseOpsRequestSpec":                         schema_apimachinery_apis_ops_v1alpha1_ClickHouseOpsRequestSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseTLSSpec":                                schema_apimachinery_apis_ops_v1alpha1_ClickHouseTLSSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseUpdateVersionSpec":                      schema_apimachinery_apis_ops_v1alpha1_ClickHouseUpdateVersionSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVerticalScalingSpec":                    schema_apimachinery_apis_ops_v1alpha1_ClickHouseVerticalScalingSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVolumeExpansionSpec":                    schema_apimachinery_apis_ops_v1alpha1_ClickHouseVolumeExpansionSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ConfigNode":                                       schema_apimachinery_apis_ops_v1alpha1_ConfigNode(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ContainerResources":                               schema_apimachinery_apis_ops_v1alpha1_ContainerResources(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.DruidCustomConfigurationSpec":                     schema_apimachinery_apis_ops_v1alpha1_DruidCustomConfigurationSpec(ref),
@@ -630,6 +638,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongosNode":                                       schema_apimachinery_apis_ops_v1alpha1_MongosNode(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLCustomConfigurationSpec":                     schema_apimachinery_apis_ops_v1alpha1_MySQLCustomConfigurationSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLHorizontalScalingSpec":                       schema_apimachinery_apis_ops_v1alpha1_MySQLHorizontalScalingSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLMigrationSpec":                               schema_apimachinery_apis_ops_v1alpha1_MySQLMigrationSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLOpsRequest":                                  schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequest(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLOpsRequestList":                              schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLOpsRequestSpec":                              schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequestSpec(ref),
@@ -674,6 +683,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresCustomConfigurationSpec":                  schema_apimachinery_apis_ops_v1alpha1_PostgresCustomConfigurationSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresForceFailOver":                            schema_apimachinery_apis_ops_v1alpha1_PostgresForceFailOver(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresHorizontalScalingSpec":                    schema_apimachinery_apis_ops_v1alpha1_PostgresHorizontalScalingSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresMigrationSpec":                            schema_apimachinery_apis_ops_v1alpha1_PostgresMigrationSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresOpsRequest":                               schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequest(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresOpsRequestList":                           schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresOpsRequestSpec":                           schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestSpec(ref),
@@ -701,6 +711,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RabbitMQUpdateVersionSpec":                        schema_apimachinery_apis_ops_v1alpha1_RabbitMQUpdateVersionSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RabbitMQVerticalScalingSpec":                      schema_apimachinery_apis_ops_v1alpha1_RabbitMQVerticalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RabbitMQVolumeExpansionSpec":                      schema_apimachinery_apis_ops_v1alpha1_RabbitMQVolumeExpansionSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisAclSpec":                                     schema_apimachinery_apis_ops_v1alpha1_RedisAclSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisCustomConfigurationSpec":                     schema_apimachinery_apis_ops_v1alpha1_RedisCustomConfigurationSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisHorizontalScalingSpec":                       schema_apimachinery_apis_ops_v1alpha1_RedisHorizontalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisOpsRequest":                                  schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequest(ref),
@@ -22802,7 +22813,7 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_AppBindingSpec(ref common.
 					"secret": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Secret is the name of the secret to create in the AppBinding's namespace that will hold the credentials associated with the AppBinding.",
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference"),
 						},
 					},
 					"secretTransforms": {
@@ -22828,7 +22839,7 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_AppBindingSpec(ref common.
 					"tlsSecret": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TLSSecret is the name of the secret that will hold the client certificate and private key associated with the AppBinding.",
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference"),
 						},
 					},
 				},
@@ -22836,7 +22847,7 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_AppBindingSpec(ref common.
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/runtime.RawExtension", "kmodules.xyz/client-go/api/v1.TypedObjectReference", "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.ClientConfig", "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.SecretTransform"},
+			"k8s.io/apimachinery/pkg/runtime.RawExtension", "kmodules.xyz/client-go/api/v1.TypedObjectReference", "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.ClientConfig", "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.SecretTransform", "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference"},
 	}
 }
 
@@ -23252,6 +23263,48 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_TaskRef(ref common.Referen
 	}
 }
 
+func schema_custom_resources_apis_appcatalog_v1alpha1_TypedLocalObjectReference(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"apiGroup": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is the type of resource being referenced",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name is the name of resource being referenced",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"kind", "name"},
+			},
+			VendorExtensible: spec.VendorExtensible{
+				Extensions: spec.Extensions{
+					"x-kubernetes-map-type": "atomic",
+				},
+			},
+		},
+	}
+}
+
 func schema_kmodulesxyz_monitoring_agent_api_api_v1_AgentSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -23336,6 +23389,104 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_BasicAuth(ref common.Referen
 				Required: []string{"username", "password"},
 			},
 		},
+	}
+}
+
+func schema_kmodulesxyz_monitoring_agent_api_api_v1_ClientConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ClientConfig contains the information to make a connection with an app",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"url": {
+						SchemaProps: spec.SchemaProps{
+							Description: "`url` gives the location of the app, in standard URL form (`[scheme://]host:port/path`). Exactly one of `url` or `service` must be specified.",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"insecureSkipTLSVerify": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InsecureSkipTLSVerify disables TLS certificate verification when communicating with this app. This is strongly discouraged.  You should use the CABundle instead.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"caBundle": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CABundle is a PEM encoded CA bundle which will be used to validate the serving certificate of this app.",
+							Type:        []string{"string"},
+							Format:      "byte",
+						},
+					},
+					"serverName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ServerName is used to verify the hostname on the returned certificates unless InsecureSkipVerify is given. It is also included in the client's handshake to support virtual hosting unless it is an IP address.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_kmodulesxyz_monitoring_agent_api_api_v1_ConnectionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ConnectionSpec is the spec for app",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"url": {
+						SchemaProps: spec.SchemaProps{
+							Description: "`url` gives the location of the app, in standard URL form (`[scheme://]host:port/path`). Exactly one of `url` or `service` must be specified.",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"insecureSkipTLSVerify": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InsecureSkipTLSVerify disables TLS certificate verification when communicating with this app. This is strongly discouraged.  You should use the CABundle instead.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"caBundle": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CABundle is a PEM encoded CA bundle which will be used to validate the serving certificate of this app.",
+							Type:        []string{"string"},
+							Format:      "byte",
+						},
+					},
+					"serverName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ServerName is used to verify the hostname on the returned certificates unless InsecureSkipVerify is given. It is also included in the client's handshake to support virtual hosting unless it is an IP address.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"authSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Secret is the name of the secret to create in the AppBinding's namespace that will hold the credentials associated with the AppBinding.",
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
+						},
+					},
+					"tlsSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TLSSecret is the name of the secret that will hold the client certificate and private key associated with the AppBinding.",
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"kmodules.xyz/client-go/api/v1.ObjectReference"},
 	}
 }
 
@@ -23508,6 +23659,66 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_MonitoringPresetsSpec(ref co
 		},
 		Dependencies: []string{
 			"kmodules.xyz/monitoring-agent-api/api/v1.ServiceMonitorPreset"},
+	}
+}
+
+func schema_kmodulesxyz_monitoring_agent_api_api_v1_Prometheus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"appBindingRef": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
+						},
+					},
+					"url": {
+						SchemaProps: spec.SchemaProps{
+							Description: "`url` gives the location of the app, in standard URL form (`[scheme://]host:port/path`). Exactly one of `url` or `service` must be specified.",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"insecureSkipTLSVerify": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InsecureSkipTLSVerify disables TLS certificate verification when communicating with this app. This is strongly discouraged.  You should use the CABundle instead.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"caBundle": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CABundle is a PEM encoded CA bundle which will be used to validate the serving certificate of this app.",
+							Type:        []string{"string"},
+							Format:      "byte",
+						},
+					},
+					"serverName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ServerName is used to verify the hostname on the returned certificates unless InsecureSkipVerify is given. It is also included in the client's handshake to support virtual hosting unless it is an IP address.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"authSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Secret is the name of the secret to create in the AppBinding's namespace that will hold the credentials associated with the AppBinding.",
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
+						},
+					},
+					"tlsSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TLSSecret is the name of the secret that will hold the client certificate and private key associated with the AppBinding.",
+							Ref:         ref("kmodules.xyz/client-go/api/v1.ObjectReference"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"kmodules.xyz/client-go/api/v1.ObjectReference"},
 	}
 }
 
@@ -26119,14 +26330,14 @@ func schema_apimachinery_apis_ops_v1alpha1_AuthSpec(ref common.ReferenceCallback
 					"secretRef": {
 						SchemaProps: spec.SchemaProps{
 							Description: "SecretRef holds the new authSecret If it is given, ops-manager will use this. Otherwise, will generate random password",
-							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+							Ref:         ref("kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference"},
+			"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.TypedLocalObjectReference"},
 	}
 }
 
@@ -26378,6 +26589,12 @@ func schema_apimachinery_apis_ops_v1alpha1_CassandraOpsRequestSpec(ref common.Re
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -26457,30 +26674,67 @@ func schema_apimachinery_apis_ops_v1alpha1_CassandraVolumeExpansionSpec(ref comm
 	}
 }
 
-func schema_apimachinery_apis_ops_v1alpha1_ClickHouseClusterVerticalScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_apimachinery_apis_ops_v1alpha1_ClickHouseCustomConfigurationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
+				Description: "ClickHouseCustomConfigurationSpec is the spec for Reconfiguring the clickhouse Settings",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"clusterName": {
+					"configSecret": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Name of the ClickHouse cluster to which the vertical scaling configuration applies.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "ConfigSecret is an optional field to provide custom configuration file for database.",
+							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
 						},
 					},
-					"node": {
+					"applyConfig": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resource specifications for the nodes in this ClickHouse cluster.",
-							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"),
+							Description: "ApplyConfig is an optional field to provide clickhouse configuration. Provided configuration will be applied to config files stored in ConfigSecret. If the ConfigSecret is missing, the operator will create a new k8s secret by the following naming convention: {db-name}-user-config . Expected input format:\n\tapplyConfig:\n\t\tfile-name.yml: |\n\t\t\tkey: value",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"removeCustomConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to \"true\", the user provided configuration will be removed. The clickhouse cluster will start will default configuration that is generated by the operator.",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"},
+			"k8s.io/api/core/v1.LocalObjectReference"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_ClickHouseHorizontalScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ClickHouseHorizontalScalingSpec contains the horizontal scaling information of a clickhouse cluster",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of node",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -26613,16 +26867,46 @@ func schema_apimachinery_apis_ops_v1alpha1_ClickHouseOpsRequestSpec(ref common.R
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"),
 						},
 					},
+					"horizontalScaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for horizontal scaling",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseHorizontalScalingSpec"),
+						},
+					},
+					"updateVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for upgrading clickhouse",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseUpdateVersionSpec"),
+						},
+					},
 					"verticalScaling": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Specifies information necessary for vertical scaling",
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVerticalScalingSpec"),
 						},
 					},
+					"volumeExpansion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for volume expansion",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVolumeExpansionSpec"),
+						},
+					},
+					"configuration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for custom configuration of clickhouse",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseCustomConfigurationSpec"),
+						},
+					},
 					"timeout": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.",
 							Ref:         ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+						},
+					},
+					"tls": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for configuring TLS",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseTLSSpec"),
 						},
 					},
 					"apply": {
@@ -26632,12 +26916,94 @@ func schema_apimachinery_apis_ops_v1alpha1_ClickHouseOpsRequestSpec(ref common.R
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseCustomConfigurationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseTLSSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseUpdateVersionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_ClickHouseTLSSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ClickHouseTLSSpec contains necessary information for configuring TLS",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"sslVerificationMode": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SSLVerificationMode specifies how server certificates should be verified",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"issuerRef": {
+						SchemaProps: spec.SchemaProps{
+							Description: "IssuerRef is a reference to a Certificate Issuer.",
+							Ref:         ref("k8s.io/api/core/v1.TypedLocalObjectReference"),
+						},
+					},
+					"certificates": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Certificate provides server and/or client certificate options used by application pods. These options are passed to a cert-manager Certificate object. xref: https://github.com/jetstack/cert-manager/blob/v0.16.0/pkg/apis/certmanager/v1beta1/types_certificate.go#L82-L162",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("kmodules.xyz/client-go/api/v1.CertificateSpec"),
+									},
+								},
+							},
+						},
+					},
+					"rotateCertificates": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RotateCertificates tells operator to initiate certificate rotation",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"remove": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Remove tells operator to remove TLS configuration",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.TypedLocalObjectReference", "kmodules.xyz/client-go/api/v1.CertificateSpec"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_ClickHouseUpdateVersionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ClickHouseUpdateVersionSpec contains the update version information of a clickhouse cluster",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"targetVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies the target version name from catalog",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -26648,30 +27014,45 @@ func schema_apimachinery_apis_ops_v1alpha1_ClickHouseVerticalScalingSpec(ref com
 				Description: "ClickHouseVerticalScalingSpec contains the vertical scaling information of a clickhouse cluster",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"standalone": {
+					"node": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resource spec for Standalone node",
-							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"),
-						},
-					},
-					"cluster": {
-						SchemaProps: spec.SchemaProps{
-							Description: "List of cluster configurations for ClickHouse when running in cluster mode.",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseClusterVerticalScalingSpec"),
-									},
-								},
-							},
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/ops/v1alpha1.ClickHouseClusterVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"},
+			"kubedb.dev/apimachinery/apis/ops/v1alpha1.PodResources"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_ClickHouseVolumeExpansionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ClickHouseVolumeExpansionSpec is the spec for ClickHouse volume expansion",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mode": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"node": {
+						SchemaProps: spec.SchemaProps{
+							Description: "volume specification for nodes",
+							Ref:         ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
+				Required: []string{"mode"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 
@@ -27012,6 +27393,12 @@ func schema_apimachinery_apis_ops_v1alpha1_DruidOpsRequestSpec(ref common.Refere
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -27508,6 +27895,12 @@ func schema_apimachinery_apis_ops_v1alpha1_ElasticsearchOpsRequestSpec(ref commo
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -27949,6 +28342,12 @@ func schema_apimachinery_apis_ops_v1alpha1_EtcdOpsRequestSpec(ref common.Referen
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -28233,6 +28632,12 @@ func schema_apimachinery_apis_ops_v1alpha1_FerretDBOpsRequestSpec(ref common.Ref
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -28590,6 +28995,12 @@ func schema_apimachinery_apis_ops_v1alpha1_HazelcastOpsRequestSpec(ref common.Re
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -28963,6 +29374,12 @@ func schema_apimachinery_apis_ops_v1alpha1_IgniteOpsRequestSpec(ref common.Refer
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -29319,6 +29736,12 @@ func schema_apimachinery_apis_ops_v1alpha1_KafkaOpsRequestSpec(ref common.Refere
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -29670,6 +30093,12 @@ func schema_apimachinery_apis_ops_v1alpha1_MSSQLServerOpsRequestSpec(ref common.
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -30119,6 +30548,12 @@ func schema_apimachinery_apis_ops_v1alpha1_MariaDBOpsRequestSpec(ref common.Refe
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -30558,6 +30993,12 @@ func schema_apimachinery_apis_ops_v1alpha1_MemcachedOpsRequestSpec(ref common.Re
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -30977,6 +31418,12 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequestSpec(ref common.Refe
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -31241,6 +31688,33 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLHorizontalScalingSpec(ref common
 	}
 }
 
+func schema_apimachinery_apis_ops_v1alpha1_MySQLMigrationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"storageClassName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"oldPVReclaimPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Possible enum values:\n - `\"Delete\"` means the volume will be deleted from Kubernetes on release from its claim. The volume plugin must support Deletion.\n - `\"Recycle\"` means the volume will be recycled back into the pool of unbound persistent volumes on release from its claim. The volume plugin must support Recycling.\n - `\"Retain\"` means the volume will be left in its current phase (Released) for manual reclamation by the administrator. The default policy is Retain.",
+							Type:        []string{"string"},
+							Format:      "",
+							Enum:        []interface{}{"Delete", "Recycle", "Retain"},
+						},
+					},
+				},
+				Required: []string{"storageClassName"},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -31412,6 +31886,12 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequestSpec(ref common.Refere
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"),
 						},
 					},
+					"migration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for migrating storageClass or data",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLMigrationSpec"),
+						},
+					},
 					"timeout": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.",
@@ -31425,12 +31905,18 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequestSpec(ref common.Refere
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLCustomConfigurationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLReplicationModeTransformSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLTLSSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLUpdateVersionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLCustomConfigurationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLMigrationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLReplicationModeTransformSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLTLSSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLUpdateVersionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
 	}
 }
 
@@ -32004,6 +32490,12 @@ func schema_apimachinery_apis_ops_v1alpha1_PerconaXtraDBOpsRequestSpec(ref commo
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -32407,6 +32899,12 @@ func schema_apimachinery_apis_ops_v1alpha1_PgBouncerOpsRequestSpec(ref common.Re
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -32758,6 +33256,12 @@ func schema_apimachinery_apis_ops_v1alpha1_PgpoolOpsRequestSpec(ref common.Refer
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -33042,6 +33546,33 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresHorizontalScalingSpec(ref com
 	}
 }
 
+func schema_apimachinery_apis_ops_v1alpha1_PostgresMigrationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"storageClassName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"oldPVReclaimPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Possible enum values:\n - `\"Delete\"` means the volume will be deleted from Kubernetes on release from its claim. The volume plugin must support Deletion.\n - `\"Recycle\"` means the volume will be recycled back into the pool of unbound persistent volumes on release from its claim. The volume plugin must support Recycling.\n - `\"Retain\"` means the volume will be left in its current phase (Released) for manual reclamation by the administrator. The default policy is Retain.",
+							Type:        []string{"string"},
+							Format:      "",
+							Enum:        []interface{}{"Delete", "Recycle", "Retain"},
+						},
+					},
+				},
+				Required: []string{"storageClassName"},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -33225,6 +33756,12 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestSpec(ref common.Ref
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresSetRaftKeyPair"),
 						},
 					},
+					"migration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for migrating storageClass or data",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresMigrationSpec"),
+						},
+					},
 					"timeout": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Timeout for each step of the ops request in second. If a step doesn't finish within the specified timeout, the ops request will result in failure.",
@@ -33238,12 +33775,18 @@ func schema_apimachinery_apis_ops_v1alpha1_PostgresOpsRequestSpec(ref common.Ref
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresCustomConfigurationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresForceFailOver", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReconnectStandby", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresSetRaftKeyPair", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresTLSSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresUpdateVersionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "kubedb.dev/apimachinery/apis/ops/v1alpha1.AuthSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresCustomConfigurationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresForceFailOver", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresMigrationSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresReconnectStandby", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresSetRaftKeyPair", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresTLSSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresUpdateVersionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.PostgresVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RestartSpec"},
 	}
 }
 
@@ -33710,6 +34253,12 @@ func schema_apimachinery_apis_ops_v1alpha1_ProxySQLOpsRequestSpec(ref common.Ref
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"proxyRef", "type"},
 			},
@@ -34018,6 +34567,12 @@ func schema_apimachinery_apis_ops_v1alpha1_RabbitMQOpsRequestSpec(ref common.Ref
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -34108,6 +34663,56 @@ func schema_apimachinery_apis_ops_v1alpha1_RabbitMQVolumeExpansionSpec(ref commo
 	}
 }
 
+func schema_apimachinery_apis_ops_v1alpha1_RedisAclSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"secretRef": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SecretRef holds the password against which ACLs will be created if syncACL is given.",
+							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+						},
+					},
+					"syncACL": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SyncACL specifies the list of users whose ACLs should be synchronized with the new authentication secret. If provided, the system will update the ACLs for these users to ensure they are in sync with the new authentication settings.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"deleteUsers": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DeleteUsers specifies the list of users that should be deleted from the database. If provided, the system will remove these users from the database to enhance security or manage",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.LocalObjectReference"},
+	}
+}
+
 func schema_apimachinery_apis_ops_v1alpha1_RedisCustomConfigurationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -34140,11 +34745,16 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisCustomConfigurationSpec(ref comm
 							Format: "",
 						},
 					},
+					"auth": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisAclSpec"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference"},
+			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisAclSpec"},
 	}
 }
 
@@ -34370,6 +34980,12 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestSpec(ref common.Refere
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -34621,6 +35237,12 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisSentinelOpsRequestSpec(ref commo
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -35238,6 +35860,12 @@ func schema_apimachinery_apis_ops_v1alpha1_SinglestoreOpsRequestSpec(ref common.
 							Format:      "",
 						},
 					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
@@ -35607,6 +36235,12 @@ func schema_apimachinery_apis_ops_v1alpha1_SolrOpsRequestSpec(ref common.Referen
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},
@@ -36037,6 +36671,12 @@ func schema_apimachinery_apis_ops_v1alpha1_ZooKeeperOpsRequestSpec(ref common.Re
 							Description: "ApplyOption is to control the execution of OpsRequest depending on the database state.",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"maxRetries": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 				},

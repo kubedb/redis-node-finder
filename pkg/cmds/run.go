@@ -38,16 +38,17 @@ var (
 		Short:             "Launch Redis Node Finder",
 		DisableAutoGenTag: true,
 		Run: func(cmd *cobra.Command, args []string) {
-			if mode == "cluster" {
+			switch mode {
+			case "cluster":
 				fmt.Println("Running node finder for cluster mode nodes")
 				c := redis_finder.New(masterFile, slaveFile, nodesFile, initialMasterFile, endpointTypeFile)
 
 				c.RunRedisNodeFinder()
-			} else if mode == "sentinel" {
+			case "sentinel":
 				fmt.Println("Running node finder for sentinels")
 				c := sentinel_finder.New(sentinelFile)
 				c.RunSentinelReplicaFinder()
-			} else {
+			default:
 				fmt.Println("Unknown mode ", mode)
 			}
 		},

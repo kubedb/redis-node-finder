@@ -177,7 +177,7 @@ func (r *Cassandra) CassandraKeystoreCredSecretName() string {
 }
 
 func (r *Cassandra) PVCName(alias string) string {
-	return meta_util.NameWithSuffix(r.Name, alias)
+	return alias
 }
 
 func (r *Cassandra) PetSetName() string {
@@ -300,10 +300,20 @@ func (r *Cassandra) SetDefaults(kc client.Client) {
 	if r.Spec.EnableSSL {
 		if r.Spec.KeystoreCredSecret == nil {
 			r.Spec.KeystoreCredSecret = &SecretReference{
-				LocalObjectReference: core.LocalObjectReference{
+				TypedLocalObjectReference: appcat.TypedLocalObjectReference{
+					Kind: "Secret",
 					Name: r.CassandraKeystoreCredSecretName(),
 				},
 			}
+		}
+	}
+
+	if !r.Spec.DisableSecurity {
+		if r.Spec.AuthSecret == nil {
+			r.Spec.AuthSecret = &SecretReference{}
+		}
+		if r.Spec.AuthSecret.Kind == "" {
+			r.Spec.AuthSecret.Kind = kubedb.ResourceKindSecret
 		}
 	}
 
@@ -441,14 +451,14 @@ func (r *Cassandra) GetSeed() string {
 	namespace := r.Namespace
 	name := r.Name
 	if r.Spec.Topology == nil {
-		seed = fmt.Sprintf("%s-0.%s-pods.%s.svc.cluster.local", name, name, namespace)
+		seed = fmt.Sprintf("%s-0.%s-pods.%s.svc", name, name, namespace)
 		seed = seed + " , "
 		return seed
 	}
 	for _, rack := range r.Spec.Topology.Rack {
 		rackCount := min(*rack.Replicas, 3)
 		for i := int32(0); i < rackCount; i++ {
-			current_seed := fmt.Sprintf("%s-rack-%s-%d.%s-rack-%s-pods.%s.svc.cluster.local", name, rack.Name, i, name, rack.Name, namespace)
+			current_seed := fmt.Sprintf("%s-rack-%s-%d.%s-rack-%s-pods.%s.svc", name, rack.Name, i, name, rack.Name, namespace)
 			seed += current_seed + " , "
 		}
 	}

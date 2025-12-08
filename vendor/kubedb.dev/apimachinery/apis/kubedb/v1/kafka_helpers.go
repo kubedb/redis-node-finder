@@ -221,9 +221,10 @@ func (k *Kafka) NodeRoleSpecificLabelKey(role KafkaNodeRoleType) string {
 }
 
 func (k *Kafka) ConfigSecretName(role KafkaNodeRoleType) string {
-	if role == KafkaNodeRoleController {
+	switch role {
+	case KafkaNodeRoleController:
 		return meta_util.NameWithSuffix(k.OffshootName(), "controller-config")
-	} else if role == KafkaNodeRoleBroker {
+	case KafkaNodeRoleBroker:
 		return meta_util.NameWithSuffix(k.OffshootName(), "broker-config")
 	}
 	return meta_util.NameWithSuffix(k.OffshootName(), "config")
@@ -293,6 +294,18 @@ func (k *Kafka) CertSecretVolumeMountPath(configDir string, cert string) string 
 	return filepath.Join(configDir, cert)
 }
 
+func (k *Kafka) ServiceAccountName() string {
+	return k.OffshootName()
+}
+
+func (k *Kafka) ClusterRoleName() string {
+	return meta_util.NameWithSuffix(k.OffshootName(), "clusterrole")
+}
+
+func (k *Kafka) ClusterRoleBindingName() string {
+	return meta_util.NameWithSuffix(k.OffshootName(), "clusterrolebinding")
+}
+
 func (k *Kafka) PVCName(alias string) string {
 	return meta_util.NameWithSuffix(k.Name, alias)
 }
@@ -338,6 +351,15 @@ func (k *Kafka) SetDefaults(kc client.Client) {
 
 	if k.Spec.StorageType == "" {
 		k.Spec.StorageType = StorageTypeDurable
+	}
+
+	if !k.Spec.DisableSecurity {
+		if k.Spec.AuthSecret == nil {
+			k.Spec.AuthSecret = &SecretReference{}
+		}
+		if k.Spec.AuthSecret.Kind == "" {
+			k.Spec.AuthSecret.Kind = kubedb.ResourceKindSecret
+		}
 	}
 
 	var kfVersion catalog.KafkaVersion

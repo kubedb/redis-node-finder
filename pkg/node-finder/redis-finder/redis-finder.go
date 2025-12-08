@@ -150,9 +150,10 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 						continue
 					}
 					for _, port := range container.Ports {
-						if port.Name == kubedb.RedisDatabasePortName {
+						switch port.Name {
+						case kubedb.RedisDatabasePortName:
 							dbPort = int(port.ContainerPort)
-						} else if port.Name == kubedb.RedisGossipPortName {
+						case kubedb.RedisGossipPortName:
 							dbBusPort = int(port.ContainerPort)
 						}
 					}
@@ -172,9 +173,10 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 			rdCont := v3.GetContainerByName(pod.Spec.Containers, kubedb.RedisContainerName)
 			for _, port := range rdCont.Ports {
-				if port.Name == kubedb.RedisDatabasePortName {
+				switch port.Name {
+				case kubedb.RedisDatabasePortName:
 					dbPort = int(port.ContainerPort)
-				} else if port.Name == kubedb.RedisGossipPortName {
+				case kubedb.RedisGossipPortName:
 					dbBusPort = int(port.ContainerPort)
 				}
 			}
@@ -214,7 +216,7 @@ func (r *RedisdNodeFinder) writeInfoToFile(filename string, count int) {
 			klog.Fatalln(err)
 		}
 	}(file)
-	_, err = file.WriteString(fmt.Sprintf("%d\n", count))
+	_, err = fmt.Fprintf(file, "%d\n", count)
 	if err != nil {
 		klog.Fatalln(err)
 	}
