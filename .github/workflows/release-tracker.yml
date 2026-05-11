@@ -13,6 +13,8 @@ jobs:
   label-detector:
     name: Runner Label
     runs-on: label-detector
+    permissions:
+      contents: write
     outputs:
       runs-on: ${{ steps.detector.outputs.label }}
     steps:
@@ -27,7 +29,7 @@ jobs:
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Prepare git
         env:
