@@ -13,8 +13,6 @@ jobs:
   label-detector:
     name: Runner Label
     runs-on: label-detector
-    permissions:
-      contents: write
     outputs:
       runs-on: ${{ steps.detector.outputs.label }}
     steps:
