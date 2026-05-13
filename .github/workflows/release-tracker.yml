@@ -25,6 +25,7 @@ jobs:
           echo "label=$(curl -fsSL https://this-is-nats.appscode.ninja/runs-on/${{ github.repository_owner }}?visibility=${{ github.repository_visibility }})" >> $GITHUB_OUTPUT
 
   build:
+    if: github.event.pull_request.merged == true
     name: Build
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
@@ -33,9 +34,6 @@ jobs:
 
       - name: Generate LGTM App token
         id: lgtm-app-token
-        if: |
-          github.event.action == 'closed' &&
-          github.event.pull_request.merged == true
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ secrets.LGTM_APP_CLIENT_ID }}
@@ -44,9 +42,6 @@ jobs:
           repositories: CHANGELOG
 
       - name: Update release tracker
-        if: |
-          github.event.action == 'closed' &&
-          github.event.pull_request.merged == true
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ steps.lgtm-app-token.outputs.token }}
