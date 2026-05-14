@@ -29,6 +29,8 @@ jobs:
     name: Build
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
+    permissions:
+      contents: write
     steps:
       - name: Set up Go 1.25
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
@@ -61,7 +63,7 @@ jobs:
           make release COMPRESS=yes
 
       - name: Release
-        uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77 # v1
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
