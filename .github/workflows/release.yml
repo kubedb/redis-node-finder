@@ -14,6 +14,8 @@ jobs:
   label-detector:
     name: Runner Label
     runs-on: label-detector
+    permissions:
+      contents: write
     outputs:
       runs-on: ${{ steps.detector.outputs.label }}
     steps:
@@ -27,14 +29,18 @@ jobs:
     name: Build
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
+    permissions:
+      contents: write
     steps:
       - name: Set up Go 1.25
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.25'
         id: go
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
 
       - name: Print version info
         id: semver
@@ -43,12 +49,12 @@ jobs:
 
       - name: Set up QEMU
         id: qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         with:
           cache-image: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Build
         env:
@@ -57,7 +63,7 @@ jobs:
           make release COMPRESS=yes
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
