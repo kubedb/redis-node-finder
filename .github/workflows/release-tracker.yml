@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   label-detector:
+    if: github.event.pull_request.merged == true
     name: Runner Label
     runs-on: label-detector
     outputs:
@@ -23,10 +24,11 @@ jobs:
           echo "label=$(curl -fsSL https://this-is-nats.appscode.ninja/runs-on/${{ github.repository_owner }}?visibility=${{ github.repository_visibility }})" >> $GITHUB_OUTPUT
 
   build:
-    if: github.event.pull_request.merged == true
     name: Build
     needs: label-detector
     runs-on: "${{ needs.label-detector.outputs.runs-on }}"
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
