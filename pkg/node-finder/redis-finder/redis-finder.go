@@ -132,6 +132,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
+
 				klog.Fatalln("========================podname")
 				klog.Fatalln("========================podname", podName)
 
