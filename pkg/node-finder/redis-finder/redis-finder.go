@@ -133,15 +133,16 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				klog.Fatalln("========================podname")
-				fmt.Println("========================podname", podName)
+				klog.Fatalln("========================podname", podName)
 
 				if podName == r.PodName {
 					tookCurrentPodInfo = true
 				}
 
 				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+				klog.Fatalln("======================got pod")
 				if err != nil {
-					klog.Fatalln(err)
+					klog.Fatalln("=================", err)
 					return
 				}
 				dnsName := pod.Status.PodIP
