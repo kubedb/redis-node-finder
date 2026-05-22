@@ -128,7 +128,6 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
 			if err != nil {
 				klog.Fatalln(err)
-				klog.Fatalln("==================================petset not found")
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
@@ -138,10 +137,8 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 
 				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 				if err != nil {
-					klog.Fatalln("=================", err)
 					return
 				}
-				klog.Fatalln("======================got pod")
 				dnsName := pod.Status.PodIP
 
 				dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
