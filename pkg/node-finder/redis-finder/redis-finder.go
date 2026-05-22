@@ -128,6 +128,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
 			if err != nil {
 				klog.Fatalln(err)
+				fmt.Println("===========================petset")
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
