@@ -126,9 +126,9 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 		for shardNo := 0; shardNo < dbShardCount; shardNo++ {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, _ := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
-			//if err != nil {
-			//	klog.Fatalln(err)
-			//}
+			if err != nil {
+				klog.Infoln(err)
+			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				if podName == r.PodName {
