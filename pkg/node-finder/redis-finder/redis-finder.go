@@ -162,6 +162,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 					}
 				}
 				klog.Fatalln("=============dbport, dbbusport", dbPort, dbBusPort)
+				fmt.Println("=============dbport, dbbusport", dbPort, dbBusPort)
 
 				internalDnsInfo = append(internalDnsInfo, fmt.Sprintf("%s %s %d %d", podName, dnsName, dbPort, dbBusPort))
 			}
