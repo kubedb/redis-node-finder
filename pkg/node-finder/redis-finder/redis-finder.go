@@ -133,6 +133,7 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
 				klog.Fatalln("========================podname")
+				fmt.Println("========================podname", podName)
 
 				if podName == r.PodName {
 					tookCurrentPodInfo = true
