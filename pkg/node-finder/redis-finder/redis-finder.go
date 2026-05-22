@@ -127,34 +127,33 @@ func (r *RedisdNodeFinder) RunRedisNodeFinder() {
 			shardName := fmt.Sprintf("%s-shard%d", r.RedisName, shardNo)
 			petset, err := r.psClient.AppsV1().PetSets(r.Namespace).Get(context.TODO(), shardName, metav1.GetOptions{})
 			if err != nil {
-				klog.Fatalln(err)
-				return
+				klog.Infoln(err)
 			}
 			for podNo := 0; podNo < dbReplicaCount; podNo++ {
 				podName := fmt.Sprintf("%s-%d", shardName, podNo)
-
 				if podName == r.PodName {
 					tookCurrentPodInfo = true
 				}
 
 				pod, err := r.coreV1Client.Pods(db.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 				if err != nil {
-					klog.Fatalln(err)
 					return
 				}
 				dnsName := pod.Status.PodIP
 
 				dbPort, dbBusPort := kubedb.RedisDatabasePort, kubedb.RedisGossipPort
-				for _, container := range petset.Spec.Template.Spec.Containers {
-					if container.Name != kubedb.RedisContainerName {
-						continue
-					}
-					for _, port := range container.Ports {
-						switch port.Name {
-						case kubedb.RedisDatabasePortName:
-							dbPort = int(port.ContainerPort)
-						case kubedb.RedisGossipPortName:
-							dbBusPort = int(port.ContainerPort)
+				if petset != nil && petset.Spec.Template.Spec.Containers != nil {
+					for _, container := range petset.Spec.Template.Spec.Containers {
+						if container.Name != kubedb.RedisContainerName {
+							continue
+						}
+						for _, port := range container.Ports {
+							switch port.Name {
+							case kubedb.RedisDatabasePortName:
+								dbPort = int(port.ContainerPort)
+							case kubedb.RedisGossipPortName:
+								dbBusPort = int(port.ContainerPort)
+							}
 						}
 					}
 				}
