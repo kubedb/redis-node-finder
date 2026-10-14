@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -295,32 +296,11 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 				tookCurrentPodInfo = true
 			}
 
-			needPodFQDN := false
-
-			hostPort := strings.Split(announceList[i].Endpoints[j], ":")
-			if len(hostPort) == 2 {
-				host := hostPort[0]
-				portBusPort := strings.Split(hostPort[1], "@")
-				if len(portBusPort) == 2 {
-					port := portBusPort[0]
-					busPort := portBusPort[1]
-					dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
-				} else {
-					needPodFQDN = true
-				}
-			} else {
-				needPodFQDN = true
+			host, port, busPort, err := parseAnnounceEndpoint(announceList[i].Endpoints[j])
+			if err != nil {
+				return nil, fmt.Errorf("invalid announce endpoint for pod %s: %w", podName, err)
 			}
-
-			if needPodFQDN {
-				host := fmt.Sprintf("%s.%s-pods.%s.svc", podName, r.RedisName, r.Namespace)
-				port := "6379"
-				busPort := "16379"
-				if prfrdEnType == v1.PreferredEndpointTypeIP {
-					host = pod.Status.PodIP
-				}
-				dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
-			}
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", podName, host, port, busPort, pod.Status.PodIP))
 		}
 	}
 
@@ -340,33 +320,7 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		needPodFQDN := false
-		if len(announceList) <= shardSeq {
-			needPodFQDN = true
-			goto invalidDns
-		}
-		if len(announceList[shardSeq].Endpoints) <= podSeqNum {
-			needPodFQDN = true
-			goto invalidDns
-		} else {
-			hostPort := strings.Split(announceList[shardSeq].Endpoints[podSeqNum], ":")
-			if len(hostPort) != 2 {
-				needPodFQDN = true
-				goto invalidDns
-			}
-			host := hostPort[0]
-			portBusPort := strings.Split(hostPort[1], "@")
-			if len(portBusPort) != 2 {
-				needPodFQDN = true
-				goto invalidDns
-			}
-			port := portBusPort[0]
-			busPort := portBusPort[1]
-			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
-		}
-	invalidDns:
-
-		if needPodFQDN {
+		if len(announceList) <= shardSeq || len(announceList[shardSeq].Endpoints) <= podSeqNum {
 			host := fmt.Sprintf("%s.%s-pods.%s.svc", r.PodName, r.RedisName, r.Namespace)
 			port := "6379"
 			busPort := "16379"
@@ -374,9 +328,65 @@ func (r *RedisdNodeFinder) getAnnounces(rd *v1.Redis) ([]string, error) {
 				host = pod.Status.PodIP
 			}
 			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
+		} else {
+			host, port, busPort, err := parseAnnounceEndpoint(announceList[shardSeq].Endpoints[podSeqNum])
+			if err != nil {
+				return nil, fmt.Errorf("invalid announce endpoint for pod %s: %w", r.PodName, err)
+			}
+			dnsInfo = append(dnsInfo, fmt.Sprintf("%s %s %s %s %s", r.PodName, host, port, busPort, pod.Status.PodIP))
 		}
 	}
 	return dnsInfo, nil
+}
+
+func parseAnnounceEndpoint(value string) (host, port, busPort string, err error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", "", "", errors.New("endpoint is empty")
+	}
+
+	port = strconv.Itoa(int(kubedb.RedisDatabasePort))
+	busPort = strconv.Itoa(int(kubedb.RedisGossipPort))
+	hostPort := value
+	if at := strings.LastIndex(hostPort, "@"); at >= 0 {
+		if strings.Count(hostPort, "@") != 1 || at == 0 || at == len(hostPort)-1 {
+			return "", "", "", fmt.Errorf("expected host[:port][@bus-port], got %q", value)
+		}
+		busPort = hostPort[at+1:]
+		hostPort = hostPort[:at]
+	}
+	if !validTCPPort(busPort) {
+		return "", "", "", fmt.Errorf("invalid bus port %q", busPort)
+	}
+
+	switch {
+	case strings.HasPrefix(hostPort, "["):
+		host, port, err = net.SplitHostPort(hostPort)
+		if err != nil {
+			return "", "", "", fmt.Errorf("invalid endpoint %q: %w", value, err)
+		}
+	case strings.Count(hostPort, ":") == 1:
+		parts := strings.SplitN(hostPort, ":", 2)
+		host, port = parts[0], parts[1]
+	case strings.Contains(hostPort, ":"):
+		// Unbracketed IPv6 is accepted as a host-only endpoint. An IPv6
+		// endpoint with an explicit port must use [addr]:port.
+		host = hostPort
+	default:
+		host = hostPort
+	}
+	if host == "" {
+		return "", "", "", errors.New("host is empty")
+	}
+	if !validTCPPort(port) {
+		return "", "", "", fmt.Errorf("invalid port %q", port)
+	}
+	return host, port, busPort, nil
+}
+
+func validTCPPort(value string) bool {
+	port, err := strconv.Atoi(value)
+	return err == nil && port > 0 && port <= 65535
 }
 
 func (r *RedisdNodeFinder) waitUntilAllPodGetItsIP(rd *v1.Redis) {
